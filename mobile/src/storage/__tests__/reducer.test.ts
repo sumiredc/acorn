@@ -1,0 +1,83 @@
+import { type AcornData, initialData } from '@/domain/types';
+
+import { type Action, reduce } from '../reducer';
+
+const NOW = new Date(2026, 9, 21, 9).getTime(); // Wednesday
+const run = (actions: Action[], from: AcornData = initialData) =>
+  actions.reduce((data, action) => reduce(data, action, NOW), from);
+
+const judgement = {
+  choice: 'level_2',
+  probabilities: { level_2: 0.8, level_3: 0.2 },
+  confidence: 0.7,
+};
+
+describe('reduce', () => {
+  it('creates this week on first use', () => {
+    const data = run([{ type: 'tick' }]);
+    expect(data.week).toEqual({ weekStart: '2026-10-19', status: 'setup', missions: [] });
+  });
+
+  it('sets a positive budget and ignores others', () => {
+    expect(run([{ type: 'setBudget', budgetUsd: 500 }]).budgetUsd).toBe(500);
+    expect(run([{ type: 'setBudget', budgetUsd: 0 }]).budgetUsd).toBeNull();
+    expect(run([{ type: 'setBudget', budgetUsd: Number.NaN }]).budgetUsd).toBeNull();
+  });
+
+  it('adds missions with trimmed names and enforces the limits', () => {
+    const data = run([
+      { type: 'addMission', id: 'w1', name: '  Clean room ', kind: 'weekly' },
+      { type: 'addMission', id: 'w2', name: 'Another', kind: 'weekly' },
+      { type: 'addMission', id: 'd1', name: '   ', kind: 'daily' },
+    ]);
+    expect(data.week!.missions.map((m) => [m.id, m.name])).toEqual([['w1', 'Clean room']]);
+  });
+
+  it('removes a mission during setup', () => {
+    const data = run([
+      { type: 'addMission', id: 'a', name: 'A', kind: 'daily' },
+      { type: 'removeMission', id: 'a' },
+    ]);
+    expect(data.week!.missions).toEqual([]);
+  });
+
+  it('cannot submit an empty week', () => {
+    expect(run([{ type: 'submitMissions' }]).week!.status).toBe('setup');
+  });
+
+  it('locks missions while scoring', () => {
+    const data = run([
+      { type: 'addMission', id: 'a', name: 'A', kind: 'daily' },
+      { type: 'submitMissions' },
+      { type: 'addMission', id: 'b', name: 'B', kind: 'daily' },
+      { type: 'removeMission', id: 'a' },
+    ]);
+    expect(data.week!.status).toBe('scoring');
+    expect(data.week!.missions.map((m) => m.id)).toEqual(['a']);
+  });
+
+  it('activates the week once every mission is scored', () => {
+    const data = run([
+      { type: 'addMission', id: 'a', name: 'A', kind: 'daily' },
+      { type: 'submitMissions' },
+      { type: 'missionsScored', results: [{ id: 'a', pt: 4, judgement }] },
+    ]);
+    expect(data.week!.status).toBe('active');
+    expect(data.week!.missions[0]).toMatchObject({ pt: 4, judgement });
+  });
+
+  it('stays scoring when a result is missing', () => {
+    const data = run([
+      { type: 'addMission', id: 'a', name: 'A', kind: 'daily' },
+      { type: 'addMission', id: 'b', name: 'B', kind: 'daily' },
+      { type: 'submitMissions' },
+      { type: 'missionsScored', results: [{ id: 'a', pt: 4, judgement }] },
+    ]);
+    expect(data.week!.status).toBe('scoring');
+  });
+
+  it('stores the chosen language', () => {
+    expect(run([{ type: 'setLocale', locale: 'ja' }]).locale).toBe('ja');
+    expect(run([{ type: 'setLocale', locale: null }]).locale).toBeNull();
+  });
+});

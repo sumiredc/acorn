@@ -31,7 +31,7 @@ PRD ref: `prd.md > The Core Journey`
 
 | 部品 | 選択 | 理由 |
 |---|---|---|
-| アプリ | **Expo SDK 57**（React Native 0.86、React 19.2）+ Expo Router、TypeScript | 学習者の判断：そのままネイティブアプリ開発につなげるため React Native を採用。Expo を使うと同じコードが Web でも動く（エージェントの提案に学習者が合意） |
+| アプリ | **Expo SDK 58**（React Native 0.88、React 19.3）+ Expo Router、TypeScript | 学習者の判断：そのままネイティブアプリ開発につなげるため React Native を採用。Expo を使うと同じコードが Web でも動く（エージェントの提案に学習者が合意） |
 | 保存 | `@react-native-async-storage/async-storage` | 学習者の判断：localStorage。AsyncStorage は Web では localStorage を使い、ネイティブでは端末内に保存する |
 | API サーバー | **Python + uv + FastAPI** | 学習者の判断。TypeSafe 公式の Python SDK が使える |
 | Jev の呼び出し | `typesafe-sdk`（Python）、`AsyncTypeSafeClient` | 学習者の判断：TypeSafe の API を直接呼ぶ |
@@ -68,6 +68,7 @@ PRD ref: `prd.md > The Core Journey`
   cd mobile && npm install
   npx expo start --web        # アプリ → http://localhost:8081
   ```
+- 8081 番が別のアプリに使われている場合：`ACORN_CORS_ORIGINS=http://localhost:8082 docker compose up -d` と `npx expo start --web --port 8082` で、別のポートで動かす。
 - デモ収録：ブラウザの開発者ツールのモバイル表示（例：iPhone サイズ）で http://localhost:8081 を開いて録画する。
 - 提出に必要なのは、短いデモ動画と公開 GitHub リポジトリ。デプロイは任意。
 - 任意のデプロイ：他の人にも使ってもらう場合だけ、自宅サーバーの k8s に配置する（学習者の判断）。API キーをサーバー側に置く構成はそのまま使える。PoC では行わない。

@@ -5,4 +5,4 @@ services:
       - "8000:8000"
     environment:
       TYPESAFE_API_KEY: ${TYPESAFE_API_KEY:?Set TYPESAFE_API_KEY in .env}
-      ACORN_CORS_ORIGINS: http://localhost:8081
+      ACORN_CORS_ORIGINS: ${ACORN_CORS_ORIGINS:-http://localhost:8081}
