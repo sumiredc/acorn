@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Acorn PRD</title>
+<style>
+:root {
+  --bg: #f3efe2; --panel: #fffcf2; --ink: #2b2620; --muted: #776e60; --line: #2b2620;
+  --soft: #e6dcc4; --acorn: #a5642e; --acorn-soft: #f3e2cc; --leaf: #4f8a5b; --leaf-soft: #dcecd9;
+  --sky: #3f6fa6; --sky-soft: #dce7f4; --berry: #b8435a; --berry-soft: #f5dde2;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1b1915; --panel: #25221d; --ink: #efe8da; --muted: #a39a8a; --line: #efe8da;
+    --soft: #3a352c; --acorn: #e09a5c; --acorn-soft: #3d2c1d; --leaf: #8cc79a; --leaf-soft: #1f3224;
+    --sky: #8db6e6; --sky-soft: #1e2b3b; --berry: #e98a9c; --berry-soft: #3c2128;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1b1915; --panel: #25221d; --ink: #efe8da; --muted: #a39a8a; --line: #efe8da;
+  --soft: #3a352c; --acorn: #e09a5c; --acorn-soft: #3d2c1d; --leaf: #8cc79a; --leaf-soft: #1f3224;
+  --sky: #8db6e6; --sky-soft: #1e2b3b; --berry: #e98a9c; --berry-soft: #3c2128;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; line-height: 1.7; }
+main { max-width: 880px; margin: 0 auto; padding: 32px 16px 64px; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.tag { display: inline-block; font-size: 12px; letter-spacing: .08em; color: var(--muted);
+  border: 1px solid var(--muted); border-radius: 999px; padding: 2px 10px; }
+h1 { font-size: clamp(28px, 6vw, 40px); margin: 10px 0 2px; letter-spacing: .02em; }
+h1 small { font-size: 15px; color: var(--muted); font-weight: 500; margin-left: 8px; }
+.lede { color: var(--muted); margin: 0 0 24px; }
+h2 { font-size: 18px; margin: 40px 0 12px; }
+/* RPG window */
+.win { background: var(--panel); border: 3px solid var(--line); border-radius: 10px;
+  box-shadow: inset 0 0 0 3px var(--panel), inset 0 0 0 5px var(--soft); padding: 16px 18px; }
+.expand { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; }
+.expand .from { color: var(--muted); font-size: 14px; }
+.expand .arrow { font-size: 20px; color: var(--acorn); }
+@media (max-width: 600px) { .expand { grid-template-columns: 1fr; } .expand .arrow { transform: rotate(90deg); justify-self: center; } }
+svg { width: 100%; height: auto; display: block; }
+.n { fill: var(--panel); stroke: var(--line); stroke-width: 2; }
+.n-ai { fill: var(--sky-soft); stroke: var(--sky); stroke-width: 2; }
+.n-me { fill: var(--acorn-soft); stroke: var(--acorn); stroke-width: 2; }
+.n-ok { fill: var(--leaf-soft); stroke: var(--leaf); stroke-width: 2; }
+.t { fill: var(--ink); font-size: 13px; font-weight: 700; }
+.ts { fill: var(--muted); font-size: 11px; }
+.e { stroke: var(--muted); stroke-width: 1.6; fill: none; }
+.e-loop { stroke: var(--acorn); stroke-width: 1.6; fill: none; stroke-dasharray: 5 4; }
+.ah { fill: var(--muted); } .ah2 { fill: var(--acorn); }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 8px; }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px;
+  margin-right: 6px; vertical-align: -1px; background: var(--c); }
+/* screen explorer */
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.tabs button { font: inherit; font-size: 13px; border: 2px solid var(--line); background: var(--panel);
+  color: var(--ink); border-radius: 8px; padding: 4px 12px; cursor: pointer; }
+.tabs button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.explorer { display: grid; grid-template-columns: 240px 1fr; gap: 18px; align-items: start; }
+@media (max-width: 680px) { .explorer { grid-template-columns: 1fr; } .phone { margin: 0 auto; } }
+.phone { width: 240px; border: 3px solid var(--line); border-radius: 22px; padding: 12px; background: var(--bg); }
+.scr { background: var(--panel); border: 2px solid var(--line); border-radius: 8px; padding: 10px; min-height: 340px;
+  font-size: 12px; display: flex; flex-direction: column; gap: 8px; }
+.scr .hd { display: flex; justify-content: space-between; font-weight: 700; }
+.box { border: 2px solid var(--line); border-radius: 6px; padding: 6px 8px; }
+.row { display: flex; justify-content: space-between; gap: 6px; align-items: center; }
+.bar { height: 6px; background: var(--soft); border-radius: 3px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--sky); }
+.days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; text-align: center; }
+.days span { border: 1.5px solid var(--line); border-radius: 4px; padding: 2px 0; font-size: 10px; }
+.days .done { background: var(--leaf-soft); }
+.days .today { outline: 2px solid var(--acorn); outline-offset: 1px; }
+.btn { border: 2px solid var(--line); border-radius: 6px; padding: 2px 8px; font-size: 11px; background: var(--acorn-soft); }
+.btn.off { opacity: .4; }
+.cleared { color: var(--leaf); font-weight: 700; }
+.toast { background: var(--berry-soft); color: var(--berry); border: 2px solid var(--berry); border-radius: 6px; padding: 4px 8px; }
+.ex { font-size: 10px; color: var(--muted); text-align: center; margin-top: auto; }
+.detail h3 { margin: 0 0 6px; font-size: 16px; }
+.detail ul { margin: 0 0 12px; padding-left: 18px; }
+.crit { list-style: none; padding-left: 0 !important; }
+.crit li::before { content: "□ "; color: var(--leaf); font-weight: 700; }
+.lbl { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .06em; margin: 10px 0 4px; }
+/* states */
+details { background: var(--panel); border: 2px solid var(--line); border-radius: 10px; margin-bottom: 10px; }
+summary { cursor: pointer; padding: 10px 14px; font-weight: 700; list-style: none; display: flex; gap: 10px; align-items: center; }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "▶"; font-size: 11px; color: var(--acorn); transition: transform .15s; }
+details[open] summary::before { transform: rotate(90deg); }
+details > div { padding: 0 16px 12px 36px; }
+details ul { margin: 0; padding-left: 18px; }
+.pill { font-size: 11px; border-radius: 4px; padding: 1px 8px; font-weight: 700; }
+.p-now { background: var(--leaf-soft); color: var(--leaf); }
+.p-def { background: var(--sky-soft); color: var(--sky); }
+.p-non { background: var(--berry-soft); color: var(--berry); }
+.p-q { background: var(--acorn-soft); color: var(--acorn); }
+.formula { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; background: var(--bg);
+  border-radius: 6px; padding: 10px 12px; overflow-x: auto; white-space: pre; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+footer { margin-top: 40px; font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <span class="tag">PRD · APPROVED · 正本は devpost/prd.md</span>
+  <h1>Acorn <small>🌰 稼いで貯めて、ご褒美に使う</small></h1>
+  <p class="lede">自分で決めたデイリー/ウィークリーミッションをクリアして pt を貯め、ショップで現実のご褒美と交換する。稼ぎも価格も AI（Jev）が判定する。</p>
+
+  <h2>scope からどう具体化したか</h2>
+  <div class="grid2">
+    <div class="win expand"><div class="from">scope：「報酬名と金額（円）を自分で入力し、月予算から逆算」</div><div class="arrow">→</div><div>報酬の価格も <b>Jev が判定</b>。報酬の中身で「届くまでの期間」が決まり、1pt ≒ $1</div></div>
+    <div class="win expand"><div class="from">scope：「週ごとに見直し」</div><div class="arrow">→</div><div>毎週変わるのは<b>ミッションの pt だけ</b>。報酬の価格は登録時に固定</div></div>
+    <div class="win expand"><div class="from">scope：「週を進める操作」</div><div class="arrow">→</div><div><b>「日を進める」と「週を進める」</b>の両方</div></div>
+    <div class="win expand"><div class="from">scope：「ポイント残高の扱いは未定」</div><div class="arrow">→</div><div><b>ずっと持ち越し</b>。年をまたいでもリセットしない</div></div>
+  </div>
+
+  <h2>Core Journey</h2>
+  <div class="win">
+    <svg viewBox="0 0 780 300" role="img" aria-label="初回は予算、報酬、ミッション、採点の準備フロー。そのあと毎日クリアして pt を得て、ショップで交換。週が変わると準備フローに戻る">
+      <defs>
+        <marker id="m1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker>
+        <marker id="m2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah2"/></marker>
+      </defs>
+      <text x="20" y="20" class="ts">週の準備フロー（必要なステップだけ）</text>
+      <rect x="20" y="32" width="150" height="60" rx="8" class="n-me"/>
+      <text x="95" y="58" text-anchor="middle" class="t">① 予算 ($)</text>
+      <text x="95" y="77" text-anchor="middle" class="ts">未設定のときだけ</text>
+      <rect x="210" y="32" width="160" height="60" rx="8" class="n-me"/>
+      <text x="290" y="58" text-anchor="middle" class="t">② 報酬 1〜5 件</text>
+      <text x="290" y="77" text-anchor="middle" class="ts">Jev が価格を判定</text>
+      <rect x="410" y="32" width="160" height="60" rx="8" class="n-me"/>
+      <text x="490" y="58" text-anchor="middle" class="t">③ ミッション</text>
+      <text x="490" y="77" text-anchor="middle" class="ts">デイリー≤3 / ウィークリー≤1</text>
+      <rect x="610" y="32" width="150" height="60" rx="8" class="n-ai"/>
+      <text x="685" y="58" text-anchor="middle" class="t">④ Jev が採点</text>
+      <text x="685" y="77" text-anchor="middle" class="ts">pt + 確率分布</text>
+      <path d="M170 62 H206" class="e" marker-end="url(#m1)"/>
+      <path d="M370 62 H406" class="e" marker-end="url(#m1)"/>
+      <path d="M570 62 H606" class="e" marker-end="url(#m1)"/>
+
+      <rect x="560" y="160" width="200" height="60" rx="8" class="n"/>
+      <text x="660" y="186" text-anchor="middle" class="t">⑤ ホームでクリア</text>
+      <text x="660" y="205" text-anchor="middle" class="ts">自己申告・30分以内は取り消し可</text>
+      <rect x="300" y="160" width="200" height="60" rx="8" class="n-ok"/>
+      <text x="400" y="186" text-anchor="middle" class="t">⑥ ショップで交換</text>
+      <text x="400" y="205" text-anchor="middle" class="ts">交換済みになる</text>
+      <rect x="40" y="160" width="200" height="60" rx="8" class="n"/>
+      <text x="140" y="186" text-anchor="middle" class="t">⑦ 週のリセット</text>
+      <text x="140" y="205" text-anchor="middle" class="ts">月曜 or 週の初回起動・残高は残る</text>
+
+      <path d="M685 92 V156" class="e" marker-end="url(#m1)"/>
+      <path d="M560 190 H504" class="e" marker-end="url(#m1)"/>
+      <path d="M300 190 H244" class="e" marker-end="url(#m1)"/>
+      <path d="M640 220 C 640 270, 700 270, 720 230" class="e-loop" marker-end="url(#m2)"/>
+      <text x="690" y="285" text-anchor="middle" class="ts">日を進める ↻</text>
+      <path d="M140 160 C 140 120, 460 120, 480 96" class="e-loop" marker-end="url(#m2)"/>
+      <text x="300" y="128" text-anchor="middle" class="ts">次の週：③④へ（ミッション引き継ぎ可・進捗はリセット）</text>
+    </svg>
+    <div class="legend">
+      <span style="--c: var(--acorn)">自分が入力</span>
+      <span style="--c: var(--sky)">Jev が判定</span>
+      <span style="--c: var(--leaf)">ゴール</span>
+    </div>
+  </div>
+
+  <h2>画面ごとの振る舞い</h2>
+  <div class="tabs" role="group" aria-label="画面">
+    <button data-k="setup" aria-pressed="true">週の準備</button>
+    <button data-k="home" aria-pressed="false">ホーム</button>
+    <button data-k="shop" aria-pressed="false">ショップ</button>
+    <button data-k="time" aria-pressed="false">時間操作</button>
+  </div>
+  <div class="explorer">
+    <div class="phone"><div class="scr" id="scr"></div></div>
+    <div class="detail win" id="detail"></div>
+  </div>
+
+  <h2>価格の決まり方</h2>
+  <div class="win">
+    <div class="formula">1pt ≒ $1（ポイント = 現実のお金をゲーム内のお金に換えたもの）
+
+報酬（値段のあるもの）   pt = Jev が見積もった金額($)
+報酬（値段のつけにくいもの） pt = Jev が判定した期間(か月) × 月の予算($)
+ミッション              pt = Jev が判定した難しさ × 月の予算 から決まる
+                       （普通の難しさで 1 か月すべてクリア ≒ 月の予算）</div>
+    <p style="margin:10px 0 0;color:var(--muted);font-size:14px">例：予算 $500/月 → $300 のヘッドホンは 0.6 か月ほど。一般的な車は何年もかかる。予算 $50,000/月なら車にも 1 か月ほどで届く。ミッションの pt の正確な計算方法は <span class="mono">4-spec</span> で決める。</p>
+  </div>
+
+  <h2>状態と境界</h2>
+  <details open><summary>初回起動</summary><div>予算 → 報酬 → ミッション → 採点の準備フローから始まる。</div></details>
+  <details><summary>採点中・採点前</summary><div>採点が終わるまで、ミッションはクリアできない。</div></details>
+  <details><summary>Jev の判定に失敗</summary><div>エラーを表示し、再試行できる。週の始めの採点に失敗した場合、採点が終わるまでその週のミッションはクリアできない。報酬の価格判定に失敗した場合も同じく再試行できる。</div></details>
+  <details><summary>残高不足</summary><div>交換ボタンは押せない。すり抜けた場合はエラートーストが出て、残高は変わらない。</div></details>
+  <details><summary>ずっと残るもの</summary><div>予算、報酬（交換済みかどうかを含む）、ミッション、ポイント残高、過去のクリア状況。</div></details>
+
+  <h2>範囲</h2>
+  <details open><summary><span class="pill p-now">BUILD</span> PoC で作る</summary><div><ul>
+    <li>週の準備フロー（予算・報酬・ミッション・採点）</li>
+    <li>Jev によるミッションの pt 判定と報酬の価格判定。どちらも確率分布をステータス画面風に表示</li>
+    <li>ホーム（タイムライン、ミッション、クリア、30 分以内の取り消し）</li>
+    <li>ショップ（ウィッシュリスト、交換、交換済み）</li>
+    <li>週のリセット、ポイント残高の持ち越し</li>
+    <li>「日を進める」「週を進める」</li>
+    <li>失敗時の表示と再試行、残高不足の防止</li>
+    <li>昔の RPG 風で、モバイルレイアウトの見た目</li>
+  </ul></div></details>
+  <details><summary><span class="pill p-def">DEFERRED</span> 後回し</summary><div><ul>
+    <li>$ 以外の通貨：為替レートが必要になり、外部データへの依存が増えるため</li>
+    <li>ネイティブモバイルアプリ：PoC は Web で十分に見せられるため</li>
+    <li>価格の手動調整（±1 段階など）：採用するかどうか未定</li>
+    <li>予算をあとから変える操作：今回は扱っていない</li>
+  </ul></div></details>
+  <details><summary><span class="pill p-non">NON-GOAL</span> やらない</summary><div><ul>
+    <li>AI によるテキスト生成：AI の役割は値付けに絞る</li>
+    <li>ソーシャル機能：自分のための経済だから</li>
+    <li>不正対策：自分に正直であるための仕組みだから</li>
+    <li>報酬の数量指定：廃止した</li>
+  </ul></div></details>
+  <details><summary><span class="pill p-q">4-SPEC</span> 次で決めること</summary><div><ul>
+    <li>Jev の判定結果を pt にする正確な計算方法（守るべき条件は「価格の決まり方」の欄のとおり）</li>
+    <li>Jev がこの判定を型付きで返し、確率分布を出せるか</li>
+  </ul></div></details>
+
+  <footer>Markdown（devpost/prd.md）が正本。このページはレビュー用の補助です。5-build の計画時に追加した多言語対応・CI・テストの方針は Markdown にのみ反映しています。画面のイメージは振る舞いを示すための仮のもので、デザインの確定ではありません。</footer>
+</main>
+<script>
+const S = {
+  setup: {
+    scr: `<div class="hd"><span>今週の準備</span><span>3/4</span></div>
+      <div class="box"><b>デイリー</b> (2/3)<div class="row"><span>・腕立て 20 回</span></div><div class="row"><span>・英単語 30 個</span></div><div class="row"><span style="color:var(--muted)">＋ 追加</span></div></div>
+      <div class="box"><b>ウィークリー</b> (1/1)<div class="row"><span>・部屋の掃除</span></div></div>
+      <div class="box"><b>Jev の採点</b><div class="row"><span>腕立て 20 回</span><span>12pt</span></div>
+      <div class="row ts"><span>12pt</span><span>62%</span></div><div class="bar"><i style="width:62%"></i></div>
+      <div class="row ts"><span>8pt</span><span>30%</span></div><div class="bar"><i style="width:30%"></i></div></div>
+      <div class="ex">画面イメージ（仮）</div>`,
+    html: `<h3>週の準備フロー</h3>
+      <div class="lbl">振る舞い</div><ul>
+      <li>予算（未設定のとき）→ 報酬（0 件のとき、1〜5 件）→ ミッション → Jev の採点、の順に必要なステップだけ進む</li>
+      <li>ミッションは名前と、デイリーかウィークリーかだけを指定。デイリー最大 3 件、ウィークリー最大 1 件、合わせて最低 1 件</li>
+      <li>先週のミッションは引き継げる（進捗はリセット）。毎週採点し直す</li>
+      <li>ミッションの追加・変更・削除はここでだけできる</li></ul>
+      <div class="lbl">確かめ方</div><ul class="crit">
+      <li>予算が未設定のときだけ予算の入力が出る</li>
+      <li>デイリー 4 件目・ウィークリー 2 件目は追加できない</li>
+      <li>0 件のままでは準備を終えられない</li>
+      <li>採点後、各ミッションに pt と確率分布が表示される</li></ul>`
+  },
+  home: {
+    scr: `<div class="hd"><span>ホーム</span><span>🌰 1,240pt</span></div>
+      <div class="days"><span class="done">月</span><span class="done">火</span><span class="today">水</span><span>木</span><span>金</span><span>土</span><span>日</span></div>
+      <div class="box"><div class="row"><span>腕立て 20 回</span><span class="cleared">CLEAR!</span></div><div class="row" style="color:var(--muted)"><span>12pt</span><span>取り消し（あと 24 分）</span></div></div>
+      <div class="box"><div class="row"><span>英単語 30 個</span><span class="btn">クリア</span></div><div class="row" style="color:var(--muted)"><span>9pt</span></div></div>
+      <div class="box"><div class="row"><span>部屋の掃除 <small>週</small></span><span class="btn">クリア</span></div><div class="row" style="color:var(--muted)"><span>40pt</span></div></div>
+      <div class="ex">画面イメージ（仮）</div>`,
+    html: `<h3>ホーム</h3>
+      <div class="lbl">振る舞い</div><ul>
+      <li>月〜日のタイムラインに、各日のデイリーのクリア状況と今日の位置を表示</li>
+      <li>今週のミッションと、それぞれのクリア状況</li>
+      <li>デイリーは 1 日 1 回、ウィークリーは 1 週 1 回、自己申告でクリア → pt が残高に加わる</li>
+      <li>30 分以内なら取り消せる（pt も戻る）。ただし残高がマイナスになるなら取り消せない</li><li>未クリアのまま日や週が終わっても何も起きない</li>
+      <li>採点が終わるまでクリアできない</li></ul>
+      <div class="lbl">確かめ方</div><ul class="crit">
+      <li>クリアすると、ミッションとタイムラインの今日の欄がクリア済みになり、残高が増える</li>
+      <li>30 分以内なら取り消せて残高が戻る。過ぎると取り消しボタンが出ない</li>
+      <li>前の日のクリア状況がタイムラインに残る</li><li>クリア → 交換 → 取り消し で残高が足りないときは、30 分以内でも取り消せない</li></ul>`
+  },
+  shop: {
+    scr: `<div class="hd"><span>ショップ</span><span>🌰 1,240pt</span></div>
+      <div class="box"><div class="row"><span>ヘッドホン</span><span>300pt</span></div><div class="row"><span style="color:var(--muted)">$300 62% / $250 25%</span><span class="btn">交換</span></div></div>
+      <div class="box"><div class="row"><span>一日中ゴロゴロ</span><span>125pt</span></div><div class="row"><span style="color:var(--muted)">1週 55% / 2週 30%</span><span class="cleared">交換済み</span></div></div>
+      <div class="box"><div class="row"><span>車</span><span>24,000pt</span></div><div class="row"><span style="color:var(--muted)"></span><span class="btn off">交換</span></div></div>
+      <div class="toast">pt が足りません</div>
+      <div class="ex">画面イメージ（仮・数値は例）</div>`,
+    html: `<h3>ショップ（ウィッシュリスト）</h3>
+      <div class="lbl">振る舞い</div><ul>
+      <li>報酬名を入力すると Jev が価格（pt）を判定。値段のあるものは金額（$1 ≒ 1pt）、値段のつけにくいものは期間 × 月予算</li>
+      <li>価格は登録時に固定、見直さない。数量の指定はない。最大 5 件（交換済みは数えない）。ショップからいつでも追加できる</li>
+      <li>交換すると残高が減り「交換済み」になる</li></ul>
+      <div class="lbl">確かめ方</div><ul class="crit">
+      <li>追加すると、価格と確率分布（上位の候補と %）が表示される</li>
+      <li>残高が足りない報酬の交換ボタンは押せない</li>
+      <li>交換すると残高が価格分減り、交換済みになる</li>
+      <li>すり抜けて残高が足りなかった場合はエラートーストが出て、残高は変わらない</li></ul>`
+  },
+  time: {
+    scr: `<div class="hd"><span>DEMO</span><span>水曜</span></div>
+      <div class="box" style="text-align:center"><span class="btn">▶ 日を進める</span></div>
+      <div class="box" style="text-align:center"><span class="btn">⏭ 週を進める</span></div>
+      <div class="box" style="color:var(--muted)">モックでだけ使う操作</div>
+      <div class="ex">画面イメージ（仮）</div>`,
+    html: `<h3>デモ用の時間操作</h3>
+      <div class="lbl">振る舞い</div><ul>
+      <li>「日を進める」：次の日になり、デイリーがまたクリアできる</li>
+      <li>「週を進める」：次の週の月曜になり、週のリセットが起きる（残高はそのまま）</li></ul>
+      <div class="lbl">確かめ方</div><ul class="crit">
+      <li>「日を進める」で、タイムラインの今日の位置が 1 日進む</li>
+      <li>「週を進める」で準備フローが出て、残高は前の週の値のまま</li></ul>`
+  }
+};
+const scr = document.getElementById("scr"), det = document.getElementById("detail");
+const tabs = document.querySelectorAll(".tabs button");
+function show(k) {
+  scr.innerHTML = S[k].scr; det.innerHTML = S[k].html;
+  tabs.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.k === k)));
+}
+tabs.forEach(b => b.addEventListener("click", () => show(b.dataset.k)));
+show("setup");
+</script>
+</body>
+</html>

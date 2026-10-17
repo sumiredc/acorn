@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>リアルクエストログ Scope</title>
+<style>
+:root {
+  --bg: #f4f1ea; --panel: #fffdf8; --ink: #1f1d1a; --muted: #6b665c;
+  --line: #d9d2c3; --accent: #b4521f; --accent-soft: #f6e3d6;
+  --ai: #2f5d8a; --ai-soft: #dde8f3; --ok: #3d7a4a; --ok-soft: #dcebdc;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15171c; --panel: #1e2128; --ink: #ece8df; --muted: #9a958b;
+    --line: #353a44; --accent: #f08a4b; --accent-soft: #3a2619;
+    --ai: #7fb0e0; --ai-soft: #1d2c3d; --ok: #7cc28a; --ok-soft: #1e3123;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15171c; --panel: #1e2128; --ink: #ece8df; --muted: #9a958b;
+  --line: #353a44; --accent: #f08a4b; --accent-soft: #3a2619;
+  --ai: #7fb0e0; --ai-soft: #1d2c3d; --ok: #7cc28a; --ok-soft: #1e3123;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  line-height: 1.7;
+}
+main { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
+.tag { display: inline-block; font-size: 12px; letter-spacing: .08em; color: var(--muted);
+  border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; }
+h1 { font-size: clamp(26px, 5vw, 36px); margin: 12px 0 4px; }
+.lede { color: var(--muted); margin: 0 0 28px; }
+h2 { font-size: 18px; margin: 36px 0 12px; }
+.kernel { background: var(--accent-soft); border-left: 4px solid var(--accent);
+  padding: 16px 18px; border-radius: 6px; }
+.kernel b { color: var(--accent); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.card h3 { margin: 0 0 6px; font-size: 15px; }
+.card p { margin: 0; color: var(--muted); font-size: 14px; }
+svg { width: 100%; height: auto; display: block; }
+.diagram { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+.n-box { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+.n-ai { fill: var(--ai-soft); stroke: var(--ai); stroke-width: 1.5; }
+.n-me { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+.n-ok { fill: var(--ok-soft); stroke: var(--ok); stroke-width: 1.5; }
+.t { fill: var(--ink); font-size: 14px; font-weight: 600; }
+.ts { fill: var(--muted); font-size: 11.5px; }
+.edge { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+.edge-ai { stroke: var(--ai); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.arrow { fill: var(--muted); }
+.arrow-ai { fill: var(--ai); }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 8px; }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px;
+  margin-right: 6px; vertical-align: -1px; background: var(--c); }
+.steps { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.steps button { font: inherit; font-size: 13px; border: 1px solid var(--line); background: var(--panel);
+  color: var(--ink); border-radius: 999px; padding: 4px 12px; cursor: pointer; }
+.steps button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.step-body { min-height: 72px; }
+details { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px; }
+summary { cursor: pointer; padding: 12px 16px; font-weight: 600; list-style: none; display: flex; align-items: center; gap: 10px; }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "▸"; color: var(--muted); transition: transform .15s; }
+details[open] summary::before { transform: rotate(90deg); }
+details > div { padding: 0 16px 14px 36px; }
+details ul { margin: 0; padding-left: 18px; }
+.pill { font-size: 11px; font-weight: 600; border-radius: 4px; padding: 1px 8px; }
+.p-now { background: var(--ok-soft); color: var(--ok); }
+.p-later { background: var(--ai-soft); color: var(--ai); }
+.p-cut { background: var(--accent-soft); color: var(--accent); }
+.wow { border: 1px dashed var(--accent); border-radius: 10px; padding: 14px 16px; margin-top: 12px; }
+.formula { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;
+  background: var(--bg); border-radius: 6px; padding: 10px 12px; overflow-x: auto; }
+footer { margin-top: 40px; font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <span class="tag">SCOPE · APPROVED · 正本は devpost/scope.md</span>
+  <h1>リアルクエストログ</h1>
+  <p class="lede">自分で決めたデイリー/ウィークリーミッションをクリアしてポイントを貯め、ウィッシュリストの現実の報酬と交換する。ゲームのミッションループを現実に持ち込むアプリ。</p>
+
+  <div class="kernel">
+    <b>核心（Kernel）</b><br>
+    ミッションの難易度（＝獲得ポイント）は自分ではなく <b>AI（Jev）が採点</b>し、報酬の価格は<b>「月の自由に使える金額」と結びつけて計算</b>する。値付けを自分の手から離すことで、自分に甘くも厳しくもならない「経済」を作る。
+  </div>
+
+  <h2>ループの全体像</h2>
+  <div class="diagram">
+    <svg viewBox="0 0 760 330" role="img" aria-label="自分がミッションを登録し、Jev が週始めに採点、クリアでポイントを得て、月予算から計算したレートで報酬と交換する流れ">
+      <defs>
+        <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrow"/></marker>
+        <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrow-ai"/></marker>
+      </defs>
+
+      <!-- row 1 -->
+      <rect x="20" y="30" width="150" height="64" rx="8" class="n-me"/>
+      <text x="95" y="57" text-anchor="middle" class="t">自分</text>
+      <text x="95" y="77" text-anchor="middle" class="ts">月の自由に使える金額</text>
+
+      <rect x="230" y="30" width="170" height="64" rx="8" class="n-box"/>
+      <text x="315" y="57" text-anchor="middle" class="t">ミッション登録</text>
+      <text x="315" y="77" text-anchor="middle" class="ts">デイリー≤3 / ウィークリー≤1</text>
+
+      <rect x="460" y="30" width="170" height="64" rx="8" class="n-ai"/>
+      <text x="545" y="57" text-anchor="middle" class="t">Jev が採点</text>
+      <text x="545" y="77" text-anchor="middle" class="ts">週始めに毎回・確率分布付き</text>
+
+      <!-- row 2 -->
+      <rect x="460" y="150" width="170" height="64" rx="8" class="n-box"/>
+      <text x="545" y="177" text-anchor="middle" class="t">クリア（自己申告）</text>
+      <text x="545" y="197" text-anchor="middle" class="ts">ポイント獲得</text>
+
+      <rect x="230" y="150" width="170" height="64" rx="8" class="n-ai"/>
+      <text x="315" y="177" text-anchor="middle" class="t">今週のレート</text>
+      <text x="315" y="197" text-anchor="middle" class="ts">月予算 ÷ 月の獲得pt</text>
+
+      <rect x="20" y="150" width="150" height="64" rx="8" class="n-box"/>
+      <text x="95" y="177" text-anchor="middle" class="t">ウィッシュリスト</text>
+      <text x="95" y="197" text-anchor="middle" class="ts">報酬名 + 金額（円）</text>
+
+      <!-- row 3 -->
+      <rect x="230" y="256" width="170" height="56" rx="8" class="n-ok"/>
+      <text x="315" y="280" text-anchor="middle" class="t">報酬と交換</text>
+      <text x="315" y="298" text-anchor="middle" class="ts">pt を消費</text>
+
+      <!-- edges -->
+      <path d="M170 62 H226" class="edge" marker-end="url(#a)"/>
+      <path d="M400 62 H456" class="edge-ai" marker-end="url(#b)"/>
+      <path d="M545 94 V146" class="edge" marker-end="url(#a)"/>
+      <path d="M545 94 C 545 120, 400 130, 360 146" class="edge-ai" marker-end="url(#b)"/>
+      <path d="M95 94 C 95 130, 230 120, 270 146" class="edge" marker-end="url(#a)"/>
+      <path d="M230 182 H174" class="edge-ai" marker-end="url(#b)"/>
+      <path d="M545 214 C 545 250, 450 284, 404 284" class="edge" marker-end="url(#a)"/>
+      <path d="M95 214 C 95 250, 180 284, 226 284" class="edge" marker-end="url(#a)"/>
+      <text x="200" y="174" text-anchor="middle" class="ts">pt 価格</text>
+
+      <!-- weekly cycle -->
+      <path d="M630 62 C 720 62, 720 300, 640 300 L 404 300" class="edge-ai" opacity=".0"/>
+      <text x="700" y="140" text-anchor="middle" class="ts">月曜 or</text>
+      <text x="700" y="156" text-anchor="middle" class="ts">週の初回起動で</text>
+      <text x="700" y="172" text-anchor="middle" class="ts">再採点 ↻</text>
+    </svg>
+    <div class="legend">
+      <span style="--c: var(--accent)">自分が決める</span>
+      <span style="--c: var(--ai)">AI / 自動計算</span>
+      <span style="--c: var(--ok)">ゴール</span>
+    </div>
+  </div>
+
+  <h2>1 週間の流れ</h2>
+  <div class="card">
+    <div class="steps" role="group" aria-label="1 週間の流れ">
+      <button aria-pressed="true" data-i="0">① 週始め</button>
+      <button aria-pressed="false" data-i="1">② 毎日</button>
+      <button aria-pressed="false" data-i="2">③ 交換</button>
+    </div>
+    <div class="step-body" id="step"></div>
+  </div>
+
+  <h2>価格の決まり方</h2>
+  <div class="card">
+    <div class="formula">1pt あたりの円 = 月の自由に使える金額 ÷ その月に獲得できる合計 pt<br>報酬の価格(pt) = 報酬の金額(円) ÷ 1pt あたりの円</div>
+    <p style="margin-top:10px">例：月 30,000 円、月の獲得可能 6,000pt → 1pt ≒ 5 円 → 5,000 円の報酬は 1,000pt。ミッションの pt が週ごとに再採点されるので、レートも「為替」のように週ごとに動く。</p>
+  </div>
+
+  <h2>誰のためか・なぜ作るか</h2>
+  <div class="grid">
+    <div class="card"><h3>誰のため</h3><p>自分自身。ゲームのミッションのような動機づけを、現実の習慣とご褒美に使いたい。自分で値付けすると甘すぎたり厳しすぎたりして長続きしない。</p></div>
+    <div class="card"><h3>なぜ</h3><p>ゲームで効いている動機づけのループを現実に持ち込みたい。値付けを自分でやると経済が崩れるので、そこを AI に任せたい。</p></div>
+    <div class="card"><h3>見た目</h3><p>Jev の確率分布をゲームのステータス画面風に。PoC は Web でモバイルレイアウト（本番はネイティブモバイル想定）。</p></div>
+  </div>
+
+  <h2>「動いている」の定義</h2>
+  <div class="card">
+    <p>Web のモックで最低限の機能が一通り動く：ミッションと報酬の登録 → クリア → ポイント獲得 → ポイント使用。</p>
+    <div class="wow"><b>「おっ」の瞬間</b><br>ミッションを登録すると Jev がポイントを採点し、確率分布がステータス画面のように出る。モック専用の「週を進める」操作で再採点が走り、レートと報酬の価格が動く。</div>
+  </div>
+
+  <h2>範囲</h2>
+  <details open>
+    <summary><span class="pill p-now">NOW</span> PoC に入れる</summary>
+    <div><ul>
+      <li>ミッション：デイリー最大 3 件、ウィークリー最大 1 件。指定はデイリー/ウィークリーのみ。追加・変更・削除は週の始めだけ</li>
+      <li>Jev がミッションのポイントだけを採点。週の切り替わり（月〜日。月曜、または週内で初めての起動時）ごとに採点し直す</li>
+      <li>ウィッシュリスト：報酬名と金額（円）を自分で入力。pt 価格は月予算から逆算し、週ごとに見直す</li>
+      <li>プロフィールに「1 か月あたりの自由に使える金額」</li>
+      <li>確率分布をステータス画面風に表示</li>
+      <li>完了は自己申告</li>
+      <li>モック専用の時間操作（週を進める）</li>
+      <li>Web、モバイルレイアウト</li>
+    </ul></div>
+  </details>
+  <details>
+    <summary><span class="pill p-later">LATER</span> あとで</summary>
+    <div><ul>
+      <li>ネイティブモバイルアプリ</li>
+      <li>価格の手動調整（±1 段階など）：採用するかどうか未定</li>
+    </ul></div>
+  </details>
+  <details>
+    <summary><span class="pill p-cut">CUT</span> やらない（理由つき）</summary>
+    <div><ul>
+      <li>AI によるテキスト生成（ミッションの提案、レビューコメント）：AI の役割は値付けに絞る</li>
+      <li>ソーシャル機能：自分のための経済で、他人は関係しない</li>
+      <li>不正対策：自分に正直であるための仕組みなので不要</li>
+    </ul></div>
+  </details>
+  <details>
+    <summary><span class="pill" style="background:var(--bg);color:var(--muted)">OPEN</span> あとのフェーズで決める</summary>
+    <div><ul>
+      <li>Jev（jev-1.13）がどこから、どう呼べるか（呼び出し経路は未確認）。型付きの回答や確率分布が取れるかも含めて <code>4-spec</code> で確認</li>
+      <li>「その月に獲得できる合計 pt」の正確な計算方法と、ポイント残高の週・月またぎの扱い → <code>3-prd</code></li>
+    </ul></div>
+  </details>
+
+  <footer>Markdown（devpost/scope.md）が正本。このページはレビュー用の補助です。</footer>
+</main>
+<script>
+const steps = [
+  "月曜（または週内で初めての起動時）にリセット。ミッションの追加・変更はこのタイミングだけ。Jev が各ミッションの pt を採点し、確率分布をステータス画面に表示。月予算から今週のレートと報酬の pt 価格が決まる。",
+  "デイリー（最大 3 件）をクリアしたら自己申告して pt を獲得。ウィークリー（1 件）は週内にクリア。",
+  "貯まった pt で、ウィッシュリストの報酬と交換。価格は今週のレートで決まっている。"
+];
+const body = document.getElementById("step");
+const btns = document.querySelectorAll(".steps button");
+function show(i) {
+  body.textContent = steps[i];
+  btns.forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.i === i)));
+}
+btns.forEach(b => b.addEventListener("click", () => show(+b.dataset.i)));
+show(0);
+</script>
+</body>
+</html>

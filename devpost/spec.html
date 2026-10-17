@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Acorn Spec</title>
+<style>
+:root {
+  --bg: #f3efe2; --panel: #fffcf2; --ink: #2b2620; --muted: #776e60; --line: #2b2620;
+  --soft: #e6dcc4; --acorn: #a5642e; --acorn-soft: #f3e2cc; --leaf: #4f8a5b; --leaf-soft: #dcecd9;
+  --sky: #3f6fa6; --sky-soft: #dce7f4; --berry: #b8435a; --berry-soft: #f5dde2;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1b1915; --panel: #25221d; --ink: #efe8da; --muted: #a39a8a; --line: #efe8da;
+    --soft: #3a352c; --acorn: #e09a5c; --acorn-soft: #3d2c1d; --leaf: #8cc79a; --leaf-soft: #1f3224;
+    --sky: #8db6e6; --sky-soft: #1e2b3b; --berry: #e98a9c; --berry-soft: #3c2128;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1b1915; --panel: #25221d; --ink: #efe8da; --muted: #a39a8a; --line: #efe8da;
+  --soft: #3a352c; --acorn: #e09a5c; --acorn-soft: #3d2c1d; --leaf: #8cc79a; --leaf-soft: #1f3224;
+  --sky: #8db6e6; --sky-soft: #1e2b3b; --berry: #e98a9c; --berry-soft: #3c2128;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; line-height: 1.7; }
+main { max-width: 900px; margin: 0 auto; padding: 32px 16px 64px; }
+code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em; }
+.tag { display: inline-block; font-size: 12px; letter-spacing: .08em; color: var(--muted);
+  border: 1px solid var(--muted); border-radius: 999px; padding: 2px 10px; }
+h1 { font-size: clamp(28px, 6vw, 40px); margin: 10px 0 2px; }
+h1 small { font-size: 15px; color: var(--muted); font-weight: 500; margin-left: 8px; }
+.lede { color: var(--muted); margin: 0 0 24px; }
+h2 { font-size: 18px; margin: 40px 0 12px; }
+.win { background: var(--panel); border: 3px solid var(--line); border-radius: 10px;
+  box-shadow: inset 0 0 0 3px var(--panel), inset 0 0 0 5px var(--soft); padding: 16px 18px; }
+svg { width: 100%; height: auto; display: block; }
+.n { fill: var(--panel); stroke: var(--line); stroke-width: 2; }
+.n-app { fill: var(--acorn-soft); stroke: var(--acorn); stroke-width: 2; }
+.n-api { fill: var(--leaf-soft); stroke: var(--leaf); stroke-width: 2; }
+.n-ai { fill: var(--sky-soft); stroke: var(--sky); stroke-width: 2; }
+.grp { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 6 5; }
+.t { fill: var(--ink); font-size: 13px; font-weight: 700; }
+.ts { fill: var(--muted); font-size: 11px; }
+.e { stroke: var(--muted); stroke-width: 1.6; fill: none; }
+.ah { fill: var(--muted); }
+.hl { stroke: var(--acorn) !important; stroke-width: 3.5 !important; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 8px; }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px;
+  margin-right: 6px; vertical-align: -1px; background: var(--c); }
+.stepper { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
+.stepper button { font: inherit; font-size: 13px; border: 2px solid var(--line); background: var(--panel);
+  color: var(--ink); border-radius: 8px; padding: 3px 11px; cursor: pointer; }
+.stepper button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.stepbody { min-height: 92px; }
+.stepbody .ref { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.grid2 h3 { margin: 0 0 6px; font-size: 15px; }
+.grid2 p { margin: 0; font-size: 14px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--soft); vertical-align: top; }
+th { font-size: 12px; color: var(--muted); }
+.tbl { overflow-x: auto; }
+details { background: var(--panel); border: 2px solid var(--line); border-radius: 10px; margin-bottom: 10px; }
+summary { cursor: pointer; padding: 10px 14px; font-weight: 700; list-style: none; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "▶"; font-size: 11px; color: var(--acorn); transition: transform .15s; }
+details[open] summary::before { transform: rotate(90deg); }
+summary .f { font-weight: 400; font-size: 12px; color: var(--muted); font-family: ui-monospace, Menlo, monospace; }
+details > div { padding: 0 16px 12px 36px; font-size: 14px; }
+details ul { margin: 0; padding-left: 18px; }
+.ref { color: var(--muted); font-size: 12px; }
+.calc { display: grid; grid-template-columns: auto 1fr; gap: 10px 14px; align-items: center; }
+.calc label { font-size: 13px; color: var(--muted); }
+.calc input[type=range] { width: 100%; accent-color: var(--acorn); }
+.calc output { font-weight: 700; }
+.calcout { margin-top: 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.calcout div { border: 2px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--bg); }
+.calcout b { display: block; font-size: 20px; }
+.calcout span { font-size: 12px; color: var(--muted); }
+pre { background: var(--bg); border-radius: 6px; padding: 10px 12px; overflow-x: auto; font-size: 12.5px; margin: 0; }
+.pill { font-size: 11px; border-radius: 4px; padding: 1px 8px; font-weight: 700; }
+.p-q { background: var(--acorn-soft); color: var(--acorn); }
+.p-v { background: var(--sky-soft); color: var(--sky); }
+footer { margin-top: 40px; font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <span class="tag">SPEC · APPROVED · 正本は devpost/spec.md</span>
+  <h1>Acorn <small>技術仕様</small></h1>
+  <p class="lede">アプリ（Expo）がルールとデータのすべてを持ち、API サーバー（FastAPI）は Jev に聞いて pt に換算するだけ。Jev には区分を選ばせ、計算はコードで行う。</p>
+
+  <h2>全体の構成</h2>
+  <div class="win">
+    <svg viewBox="0 0 800 330" role="img" aria-label="ブラウザの中の Expo アプリが AsyncStorage に保存し、API サーバー（Docker の FastAPI）を呼び、API サーバーが TypeSafe API の Jev を呼ぶ">
+      <defs><marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+      <rect x="14" y="14" width="370" height="300" rx="12" class="grp"/>
+      <text x="30" y="36" class="ts">ブラウザ / 端末（localhost:8081）</text>
+      <rect x="40" y="52" width="150" height="56" rx="8" class="n-app" id="d-screens"/>
+      <text x="115" y="76" text-anchor="middle" class="t">Screens</text>
+      <text x="115" y="94" text-anchor="middle" class="ts">setup / index / shop</text>
+      <rect x="214" y="52" width="150" height="56" rx="8" class="n-app" id="d-domain"/>
+      <text x="289" y="76" text-anchor="middle" class="t">Domain</text>
+      <text x="289" y="94" text-anchor="middle" class="ts">週・クリア・残高（純粋関数）</text>
+      <rect x="40" y="150" width="150" height="56" rx="8" class="n-app" id="d-store"/>
+      <text x="115" y="174" text-anchor="middle" class="t">Store</text>
+      <text x="115" y="192" text-anchor="middle" class="ts">useAcorn()</text>
+      <rect x="214" y="150" width="150" height="56" rx="8" class="n-app" id="d-client"/>
+      <text x="289" y="174" text-anchor="middle" class="t">API Client</text>
+      <text x="289" y="192" text-anchor="middle" class="ts">/judge/*</text>
+      <rect x="40" y="244" width="150" height="52" rx="8" class="n" id="d-storage"/>
+      <text x="115" y="266" text-anchor="middle" class="t">AsyncStorage</text>
+      <text x="115" y="283" text-anchor="middle" class="ts">Web では localStorage</text>
+
+      <rect x="420" y="14" width="200" height="300" rx="12" class="grp"/>
+      <text x="436" y="36" class="ts">Docker（localhost:8000）</text>
+      <rect x="440" y="120" width="160" height="110" rx="8" class="n-api" id="d-api"/>
+      <text x="520" y="146" text-anchor="middle" class="t">FastAPI</text>
+      <text x="520" y="166" text-anchor="middle" class="ts">main.py（窓口・CORS）</text>
+      <text x="520" y="184" text-anchor="middle" class="ts">jev.py（Jev 呼び出し）</text>
+      <text x="520" y="202" text-anchor="middle" class="ts">pricing.py（区分→pt）</text>
+      <text x="520" y="250" text-anchor="middle" class="ts">🔑 TYPESAFE_API_KEY</text>
+
+      <rect x="650" y="130" width="136" height="90" rx="8" class="n-ai" id="d-jev"/>
+      <text x="718" y="158" text-anchor="middle" class="t">TypeSafe API</text>
+      <text x="718" y="178" text-anchor="middle" class="ts">jev-1.13.0</text>
+      <text x="718" y="196" text-anchor="middle" class="ts">Score / Choice</text>
+
+      <path d="M190 80 H210" class="e" marker-end="url(#m)" id="e-sd"/>
+      <path d="M115 108 V146" class="e" marker-end="url(#m)" id="e-ss"/>
+      <path d="M115 206 V240" class="e" marker-end="url(#m)" id="e-st"/>
+      <path d="M190 178 H210" class="e" marker-end="url(#m)" id="e-sc"/>
+      <path d="M364 178 H436" class="e" marker-end="url(#m)" id="e-ca"/>
+      <path d="M600 175 H646" class="e" marker-end="url(#m)" id="e-aj"/>
+    </svg>
+    <div class="legend">
+      <span style="--c: var(--acorn)">アプリ（TypeScript）</span>
+      <span style="--c: var(--leaf)">API サーバー（Python）</span>
+      <span style="--c: var(--sky)">外部サービス</span>
+    </div>
+  </div>
+
+  <h2>Core Journey をシステムで追う</h2>
+  <div class="win">
+    <div class="stepper" role="group" aria-label="ステップ" id="stepper"></div>
+    <div class="stepbody" id="stepbody"></div>
+  </div>
+
+  <h2>Pricing Rules を試す</h2>
+  <div class="win">
+    <div class="calc">
+      <label for="b">月の予算</label><div><input id="b" type="range" min="100" max="5000" step="100" value="500"> <output id="bo">$500</output></div>
+      <label for="lv">難しさ</label><div><input id="lv" type="range" min="0" max="4" step="1" value="2"> <output id="lvo">普通</output></div>
+    </div>
+    <div class="calcout">
+      <div><b id="o1">4pt</b><span>デイリー 1 件（1 日）</span></div>
+      <div><b id="o2">29pt</b><span>ウィークリー 1 件（1 週）</span></div>
+      <div><b id="o3">$500</b><span>全枠 × この難しさで 1 か月</span></div>
+      <div><b id="o4">117pt</b><span>「1 週間」の報酬（値段がつけにくいもの）</span></div>
+    </div>
+    <p class="ref" style="margin-top:10px">配分 75% / 25%、倍率 0.5 / 0.75 / 1 / 1.5 / 2 （レビューで承認）。値段のある報酬は区分の値がそのまま pt（例：〜$300 → 300pt）。</p>
+  </div>
+
+  <h2>スタック</h2>
+  <div class="win tbl">
+    <table>
+      <tr><th>部品</th><th>選択</th><th>理由</th></tr>
+      <tr><td>アプリ</td><td>Expo SDK 57 + Expo Router（TS）</td><td>学習者の判断：React Native でアプリ開発につなげる。Web でも動く</td></tr>
+      <tr><td>保存</td><td>AsyncStorage</td><td>学習者の判断：localStorage（Web 版の中身）</td></tr>
+      <tr><td>API サーバー</td><td>Python + uv + FastAPI（Docker）</td><td>学習者の判断：公式 Python SDK が使える</td></tr>
+      <tr><td>Jev</td><td><code>typesafe-sdk</code>、<code>jev-1.13.0</code></td><td>学習者の判断：TypeSafe の API を直接。バージョンは固定</td></tr>
+      <tr><td>テスト</td><td>Jest（jest-expo）/ pytest</td><td>ルールと換算をテストで確かめる</td></tr>
+    </table>
+  </div>
+
+  <h2>部品とファイル</h2>
+  <details><summary>Domain <span class="f">mobile/src/domain/</span></summary><div><ul>
+    <li><code>clock.ts</code>：アプリ時刻 = 実時刻 + ずらし。週の月曜と日付キー <span class="ref">→ prd: デモ用の時間操作 / 週のリセット</span></li>
+    <li><code>week.ts</code>：週の切り替え、件数チェック、引き継ぎ <span class="ref">→ prd: ミッションとその pt</span></li>
+    <li><code>clears.ts</code>：クリアの可否、取り消し（30 分以内かつ残高 ≥ pt） <span class="ref">→ prd: クリアと取り消し</span></li>
+    <li><code>balance.ts</code>：残高 = クリアの合計 − 交換済みの合計 <span class="ref">→ prd: 報酬とその価格</span></li>
+    <li><code>setup.ts</code>：準備フローの次のステップ <span class="ref">→ prd: Screens and Layout / 予算</span></li>
+  </ul></div></details>
+  <details><summary>Screens <span class="f">mobile/app/</span></summary><div><ul>
+    <li><code>setup.tsx</code>：予算 → 報酬 → ミッション → 採点（読み込み中 / ステータス / エラーと再試行）</li>
+    <li><code>index.tsx</code>：ホーム（残高・タイムライン・クリア / 取り消し）</li>
+    <li><code>shop.tsx</code>：ショップ（価格・分布・交換・追加。最大 5 件、交換済みは数えない）</li>
+    <li><code>_layout.tsx</code>：フォント、ナビ、デモ用の時間操作、トースト</li>
+  </ul></div></details>
+  <details><summary>Store / API Client / UI <span class="f">mobile/src/</span></summary><div><ul>
+    <li><code>storage/store.ts</code>：キー <code>acorn:v1</code> に JSON を 1 つ保存。<code>useAcorn()</code></li>
+    <li><code>api/client.ts</code>：<code>EXPO_PUBLIC_API_URL</code> の /judge/* を呼ぶ</li>
+    <li><code>ui/</code>：Window、StatusDistribution、Timeline、Toast、DemoClock、theme</li>
+  </ul></div></details>
+  <details><summary>API Server <span class="f">api/src/acorn_api/</span></summary><div>
+    <ul>
+      <li><code>main.py</code>：<code>GET /health</code>、<code>POST /judge/missions</code>、<code>POST /judge/reward</code>。CORS は localhost:8081</li>
+      <li><code>jev.py</code>：<code>AsyncTypeSafeClient</code>。テストで差し替えられる 1 つの関数</li>
+      <li><code>pricing.py</code>：区分を pt に換算（pytest）</li>
+      <li><code>schemas.py</code>：Pydantic の型</li>
+    </ul>
+<pre>POST /judge/missions  { budgetUsd, missions:[{id,name,kind}] }
+  → { missions:[{ id, pt, judgement:{choice, probabilities, confidence} }] }
+POST /judge/reward    { budgetUsd, name }
+  → { pt, mode:"price"|"period", judgement:{...} }
+失敗 → 502 { detail: "Jev の判定に失敗しました" }</pre>
+  </div></details>
+  <details><summary>Data Model <span class="f">AsyncStorage: acorn:v1</span></summary><div>
+<pre>{ version: 1,
+  budgetUsd: number | null,
+  clockOffsetMs: number,
+  rewards: [{ id, name, pt, mode, judgement, status: "available"|"redeemed", ... }],
+  week: { weekStart: "YYYY-MM-DD", status: "setup"|"scoring"|"active", missions: [...] },
+  previousMissions: [...],
+  clears: [{ id, missionId, weekStart, date, pt, clearedAt }] }</pre>
+    <p class="ref">残高は保存せず毎回計算する。API サーバーは何も保存しない。</p>
+  </div></details>
+  <details><summary>Look and Feel <span class="f">mobile/src/ui/theme.ts</span></summary><div><ul>
+    <li>フォント：DotGothic16（日本語対応のドット風）を見出し、ボタン、数値に使う</li>
+    <li>色：クリーム #f3efe2 / こげ茶 #2b2620 / どんぐり #a5642e / 葉 #4f8a5b / 空 #3f6fa6 / ベリー #b8435a（このページの配色と同じ）</li>
+    <li>RPG の窓（太い 3px の枠、角丸 8px）、「▶」付きのボタン、ステータス画面は上位 3 つを % と横棒で</li>
+    <li>モバイル幅（最大 430px 程度）、Web では中央に寄せる</li>
+  </ul></div></details>
+
+  <h2>失敗したとき</h2>
+  <div class="grid2">
+    <div class="win"><h3>Jev / API サーバーの失敗</h3><p>エラーと「▶ もう一度」を出す。週は「採点中」のままで、クリアできない。</p></div>
+    <div class="win"><h3>日本語の判定の質（未確認）</h3><p>ビルドの最初に実際の名前で試す。おかしければ質問の書き方を調整する。</p></div>
+    <div class="win"><h3>残高不足のすり抜け</h3><p>保存の直前にもう一度確かめる。足りなければトーストを出して何も変えない。</p></div>
+  </div>
+
+  <h2>起動と収録</h2>
+  <div class="win">
+<pre>cp .env.example .env        # TYPESAFE_API_KEY を入れる（コミットしない）
+docker compose up --build   # API → http://localhost:8000
+cd mobile && npm install
+npx expo start --web        # アプリ → http://localhost:8081</pre>
+    <p class="ref" style="margin-top:8px">ブラウザのモバイル表示で録画する。提出には動画と公開リポジトリが必要で、デプロイは任意（共有するなら自宅の k8s）。</p>
+  </div>
+
+  <h2>確認と検証</h2>
+  <details><summary><span class="pill p-v">BUILD</span> ビルドの最初に確かめる</summary><div><ul>
+    <li><code>typesafe-sdk</code> でモデルを指定する方法と、必要な Python のバージョン</li>
+    <li>Jev の日本語での判定の質</li>
+    <li><code>@expo-google-fonts/dotgothic16</code> があるか</li>
+  </ul></div></details>
+
+  <footer>Markdown（devpost/spec.md）が正本。このページはレビュー用の補助です。5-build の計画時に追加した多言語対応・CI・テストの方針は Markdown にのみ反映しています。</footer>
+</main>
+<script>
+const steps = [
+  ["① 初回", "保存データを読む → 予算がない → 準備フローの予算ステップ → Store に保存", ["d-screens","d-store","d-storage"], ["e-ss","e-st"], "prd: 予算"],
+  ["② 報酬", "POST /judge/reward → Jev に価格帯と期間を Choice で聞く → pricing.py で pt に換算 → 分布つきで保存し、ショップに表示", ["d-client","d-api","d-jev","d-store"], ["e-sc","e-ca","e-aj"], "prd: 報酬とその価格（ショップ）"],
+  ["③ ミッション", "アプリの中だけで完結：week.ts で件数チェック（デイリー≤3 / ウィークリー≤1 / 合計≥1）と先週分の引き継ぎ", ["d-screens","d-domain"], ["e-sd"], "prd: ミッションとその pt"],
+  ["④ 採点", "POST /judge/missions → ミッションごとの Score の質問を 1 回のリクエストにまとめる → 一番確率の高い段階 × 倍率 × 基準額 → 週を active にする。失敗したら scoring のままで再試行", ["d-client","d-api","d-jev"], ["e-ca","e-aj"], "prd: ミッションとその pt / States and Boundaries"],
+  ["⑤ クリア", "clears.ts で判定 → クリアの記録を保存 → 残高を計算し直す。30 分以内かつ残高 ≥ pt なら取り消せる", ["d-domain","d-store"], ["e-sd","e-st"], "prd: クリアと取り消し"],
+  ["⑥ 交換", "balance.ts で残高を確かめる（保存の直前にもう一度）→ 交換済みにする → 残高が減る", ["d-domain","d-store"], ["e-sd","e-st"], "prd: 報酬とその価格（ショップ）"],
+  ["⑦ 次の週", "起動時や時間操作のあと、clock.ts の月曜と保存した weekStart を比べる → 違えば新しい週（setup）を作り、ミッションを previousMissions に移す", ["d-domain","d-store"], ["e-sd"], "prd: 週のリセット / デモ用の時間操作"]
+];
+const sp = document.getElementById("stepper"), sb = document.getElementById("stepbody");
+const allIds = ["d-screens","d-domain","d-store","d-client","d-storage","d-api","d-jev","e-sd","e-ss","e-st","e-sc","e-ca","e-aj"];
+steps.forEach((s, i) => { const b = document.createElement("button"); b.textContent = s[0]; b.onclick = () => show(i); sp.appendChild(b); });
+function show(i) {
+  const s = steps[i];
+  sb.innerHTML = "<div>" + s[1] + "</div><div class='ref'>→ " + s[4] + "</div>";
+  [...sp.children].forEach((b, j) => b.setAttribute("aria-pressed", String(i === j)));
+  allIds.forEach(id => document.getElementById(id).classList.remove("hl"));
+  [...s[2], ...s[3]].forEach(id => document.getElementById(id).classList.add("hl"));
+}
+show(0);
+const names = ["とても簡単","簡単","普通","難しい","とても難しい"], mult = [0.5,0.75,1,1.5,2];
+const b = document.getElementById("b"), lv = document.getElementById("lv");
+function calc() {
+  const B = +b.value, m = mult[+lv.value];
+  document.getElementById("bo").textContent = "$" + B.toLocaleString();
+  document.getElementById("lvo").textContent = names[+lv.value] + "（×" + m + "）";
+  const d = Math.max(1, Math.round(B * 0.75 / 3 / 30 * m));
+  const w = Math.max(1, Math.round(B * 0.25 * 7 / 30 * m));
+  document.getElementById("o1").textContent = d + "pt";
+  document.getElementById("o2").textContent = w + "pt";
+  document.getElementById("o3").textContent = "≈ " + Math.round(d * 3 * 30 + w * 30 / 7).toLocaleString() + "pt";
+  document.getElementById("o4").textContent = Math.round(7 / 30 * B).toLocaleString() + "pt";
+}
+b.oninput = lv.oninput = calc; calc();
+</script>
+</body>
+</html>
