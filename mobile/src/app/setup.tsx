@@ -43,23 +43,26 @@ function LanguageStep() {
   const [choice, setChoice] = useState<Locale>(locale);
 
   return (
-    <Window title={t('setup.language.title')}>
-      <PixelText style={styles.help}>{t('setup.language.help')}</PixelText>
-      <View style={styles.inline}>
-        {LANGUAGES.map((l) => (
-          <ActionButton
-            key={l.locale}
-            tone={choice === l.locale ? 'acorn' : 'plain'}
-            label={l.label}
-            onPress={() => setChoice(l.locale)}
-          />
-        ))}
-      </View>
+    <>
+      <Window title={t('setup.language.title')}>
+        <PixelText style={styles.help}>{t('setup.language.help')}</PixelText>
+        <View style={styles.inline}>
+          {LANGUAGES.map((l) => (
+            <ActionButton
+              key={l.locale}
+              tone={choice === l.locale ? 'acorn' : 'plain'}
+              label={l.label}
+              onPress={() => setChoice(l.locale)}
+            />
+          ))}
+        </View>
+      </Window>
       <ActionButton
+        wide
         label={t('common.next')}
         onPress={() => dispatch({ type: 'setLocale', locale: choice })}
       />
-    </Window>
+    </>
   );
 }
 
@@ -69,18 +72,20 @@ function NameStep() {
   const submit = () => name.trim() && dispatch({ type: 'setUserName', name });
 
   return (
-    <Window title={t('setup.name.title')}>
-      <PixelText style={styles.help}>{t('setup.name.help')}</PixelText>
-      <Field
-        value={name}
-        onChangeText={setName}
-        onSubmitEditing={submit}
-        maxLength={20}
-        placeholder={t('setup.name.placeholder')}
-        accessibilityLabel={t('setup.name.title')}
-      />
-      <ActionButton label={t('common.next')} disabled={!name.trim()} onPress={submit} />
-    </Window>
+    <>
+      <Window title={t('setup.name.title')}>
+        <PixelText style={styles.help}>{t('setup.name.help')}</PixelText>
+        <Field
+          value={name}
+          onChangeText={setName}
+          onSubmitEditing={submit}
+          maxLength={20}
+          placeholder={t('setup.name.placeholder')}
+          accessibilityLabel={t('setup.name.title')}
+        />
+      </Window>
+      <ActionButton wide label={t('common.next')} disabled={!name.trim()} onPress={submit} />
+    </>
   );
 }
 
@@ -91,26 +96,29 @@ function BudgetStep() {
   const valid = value.trim() !== '' && Number.isFinite(amount) && amount > 0;
 
   return (
-    <Window title={t('setup.budget.title')}>
-      <PixelText style={styles.help}>{t('setup.budget.help')}</PixelText>
-      <View style={styles.inline}>
-        <PixelText>$</PixelText>
-        <Field
-          style={styles.grow}
-          value={value}
-          onChangeText={setValue}
-          keyboardType="numeric"
-          placeholder={t('setup.budget.placeholder')}
-          accessibilityLabel={t('setup.budget.title')}
-        />
-      </View>
-      {value.trim() !== '' && !valid && <ErrorText>{t('setup.budget.invalid')}</ErrorText>}
+    <>
+      <Window title={t('setup.budget.title')}>
+        <PixelText style={styles.help}>{t('setup.budget.help')}</PixelText>
+        <View style={styles.inline}>
+          <PixelText>$</PixelText>
+          <Field
+            style={styles.grow}
+            value={value}
+            onChangeText={setValue}
+            keyboardType="numeric"
+            placeholder={t('setup.budget.placeholder')}
+            accessibilityLabel={t('setup.budget.title')}
+          />
+        </View>
+        {value.trim() !== '' && !valid && <ErrorText>{t('setup.budget.invalid')}</ErrorText>}
+      </Window>
       <ActionButton
+        wide
         label={t('common.next')}
         disabled={!valid}
         onPress={() => dispatch({ type: 'setBudget', budgetUsd: amount })}
       />
-    </Window>
+    </>
   );
 }
 
@@ -140,55 +148,57 @@ function MissionsStep() {
   }
 
   return (
-    <Window title={t('setup.missions.title')}>
-      <PixelText style={styles.help}>{t('setup.missions.help')}</PixelText>
-      {missions.map((m) => (
-        <View key={m.id} style={styles.missionRow}>
-          <PixelText style={styles.grow}>
-            <PixelText style={styles.kind}>[{t(`kind.${m.kind}`)}]</PixelText> {m.name}
-          </PixelText>
-          <ActionButton
-            tone="plain"
-            label={t('setup.missions.remove')}
-            disabled={sending}
-            onPress={() => dispatch({ type: 'removeMission', id: m.id })}
-          />
-        </View>
-      ))}
-      <View style={styles.inline}>
-        {(['daily', 'weekly'] as const).map((k) => (
-          <ActionButton
-            key={k}
-            tone={kind === k ? 'acorn' : 'plain'}
-            label={t(`kind.${k}`)}
-            onPress={() => setKind(k)}
-          />
+    <>
+      <Window title={t('setup.missions.title')}>
+        <PixelText style={styles.help}>{t('setup.missions.help')}</PixelText>
+        {missions.map((m) => (
+          <View key={m.id} style={styles.missionRow}>
+            <PixelText style={styles.grow}>
+              <PixelText style={styles.kind}>[{t(`kind.${m.kind}`)}]</PixelText> {m.name}
+            </PixelText>
+            <ActionButton
+              tone="plain"
+              label={t('setup.missions.remove')}
+              disabled={sending}
+              onPress={() => dispatch({ type: 'removeMission', id: m.id })}
+            />
+          </View>
         ))}
-      </View>
-      <Field
-        value={name}
-        onChangeText={setName}
-        onSubmitEditing={() => canAdd && name.trim() && add()}
-        placeholder={t('setup.missions.placeholder')}
-        accessibilityLabel={t('setup.missions.placeholder')}
-      />
-      {!canAdd && (
-        <PixelText style={styles.help}>
-          {t('setup.missions.full', { kind: t(`kind.${kind}`) })}
-        </PixelText>
-      )}
+        <View style={styles.inline}>
+          {(['daily', 'weekly'] as const).map((k) => (
+            <ActionButton
+              key={k}
+              tone={kind === k ? 'acorn' : 'plain'}
+              label={t(`kind.${k}`)}
+              onPress={() => setKind(k)}
+            />
+          ))}
+        </View>
+        <Field
+          value={name}
+          onChangeText={setName}
+          onSubmitEditing={() => canAdd && name.trim() && add()}
+          placeholder={t('setup.missions.placeholder')}
+          accessibilityLabel={t('setup.missions.placeholder')}
+        />
+        {!canAdd && (
+          <PixelText style={styles.help}>
+            {t('setup.missions.full', { kind: t(`kind.${kind}`) })}
+          </PixelText>
+        )}
+        <ActionButton
+          label={t('setup.missions.add')}
+          disabled={!canAdd || !name.trim()}
+          onPress={add}
+        />
+      </Window>
       <ActionButton
-        label={t('setup.missions.add')}
-        disabled={!canAdd || !name.trim()}
-        onPress={add}
-      />
-      <View style={styles.divider} />
-      <ActionButton
+        wide
         label={t(sending ? 'setup.missions.sending' : 'setup.missions.done')}
         disabled={sending || !canFinishMissions(missions)}
         onPress={score}
       />
-    </Window>
+    </>
   );
 }
 
@@ -198,5 +208,4 @@ const styles = StyleSheet.create({
   grow: { flex: 1 },
   missionRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   kind: { color: colors.acorn, fontSize: 13 },
-  divider: { height: 2, backgroundColor: colors.soft, marginVertical: 4 },
 });

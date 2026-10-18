@@ -38,11 +38,14 @@ export function ActionButton({
   onPress,
   disabled = false,
   tone = 'acorn',
+  wide = false,
 }: {
   label: string;
   onPress: () => void;
   disabled?: boolean;
   tone?: 'acorn' | 'plain';
+  // Full width, for the main action of a screen.
+  wide?: boolean;
 }) {
   return (
     <Pressable
@@ -53,11 +56,12 @@ export function ActionButton({
       style={({ pressed }) => [
         styles.button,
         tone === 'acorn' ? styles.buttonAcorn : styles.buttonPlain,
+        wide && styles.buttonWide,
         disabled && styles.buttonDisabled,
         pressed && !disabled && styles.buttonPressed,
       ]}
     >
-      <PixelText style={styles.buttonLabel}>▶ {label}</PixelText>
+      <PixelText style={[styles.buttonLabel, wide && styles.buttonLabelWide]}>▶ {label}</PixelText>
     </Pressable>
   );
 }
@@ -93,9 +97,11 @@ const styles = StyleSheet.create({
   },
   buttonAcorn: { backgroundColor: colors.acornSoft },
   buttonPlain: { backgroundColor: colors.window },
+  buttonWide: { alignSelf: 'stretch', paddingVertical: 12 },
   buttonDisabled: { opacity: 0.35 },
   buttonPressed: { transform: [{ translateY: 1 }] },
   buttonLabel: { fontSize: 14 },
+  buttonLabelWide: { fontSize: 16, textAlign: 'center' },
   field: {
     fontFamily: fonts.pixel,
     fontSize: 16,
