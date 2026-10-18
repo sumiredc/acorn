@@ -1,5 +1,7 @@
 # Acorn
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A weekly mission-and-reward app. An AI judge (Jev, via the TypeSafe API) scores each mission's difficulty and prices each reward from your monthly budget; you earn acorns by clearing missions and spend them on rewards.
 
 Demo video: https://youtube.com/shorts/ydS4rhTu7JY
