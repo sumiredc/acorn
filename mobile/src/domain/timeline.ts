@@ -4,20 +4,27 @@ import type { Clear, Week } from './types';
 export type TimelineDay = {
   date: string;
   isToday: boolean;
-  // One entry per daily mission, in the order they were registered.
-  daily: boolean[];
-  weeklyCleared: boolean;
+  // How many daily missions were cleared that day, out of `total`.
+  cleared: number;
+  total: number;
+  // 0 when nothing was cleared, up to 4 when every daily mission was, like a contribution graph.
+  level: 0 | 1 | 2 | 3 | 4;
 };
 
 export function timelineDays(week: Week, clears: Clear[], now: number): TimelineDay[] {
   const today = dateKey(now);
-  const thisWeek = clears.filter((c) => c.weekStart === week.weekStart);
-  const cleared = (missionId: string, date: string) =>
-    thisWeek.some((c) => c.missionId === missionId && c.date === date);
-  return weekDateKeys(week.weekStart).map((date) => ({
-    date,
-    isToday: date === today,
-    daily: week.missions.filter((m) => m.kind === 'daily').map((m) => cleared(m.id, date)),
-    weeklyCleared: week.missions.some((m) => m.kind === 'weekly' && cleared(m.id, date)),
-  }));
+  const daily = new Set(week.missions.filter((m) => m.kind === 'daily').map((m) => m.id));
+  return weekDateKeys(week.weekStart).map((date) => {
+    const cleared = clears.filter(
+      (c) => c.weekStart === week.weekStart && c.date === date && daily.has(c.missionId),
+    ).length;
+    const level = cleared === 0 ? 0 : Math.ceil((cleared / daily.size) * 4);
+    return {
+      date,
+      isToday: date === today,
+      cleared,
+      total: daily.size,
+      level: level as TimelineDay['level'],
+    };
+  });
 }

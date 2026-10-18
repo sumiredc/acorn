@@ -1,4 +1,4 @@
-import { dateKey } from './clock';
+import { dateKey, midnightAfter } from './clock';
 import type { Mission, MissionUnit, Week } from './types';
 
 // How much one button press or one notch of the bar moves.
@@ -36,4 +36,11 @@ export function snapProgress(ratio: number, unit: MissionUnit, target: number): 
   const lastNotch = Math.floor((target - 1) / step) * step;
   if (raw > (lastNotch + target) / 2) return target;
   return Math.min(lastNotch, Math.round(raw / step) * step);
+}
+
+// When the current period ends: tonight for daily, Sunday night for weekly.
+export function periodEnd(mission: Pick<Mission, 'kind'>, week: Week, now: number): number {
+  return mission.kind === 'daily'
+    ? midnightAfter(dateKey(now), 1)
+    : midnightAfter(week.weekStart, 7);
 }

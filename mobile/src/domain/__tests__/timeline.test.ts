@@ -44,8 +44,30 @@ describe('timelineDays', () => {
       '2026-10-25',
     ]);
     expect(days.map((d) => d.isToday)).toEqual([false, false, true, false, false, false, false]);
-    expect(days[0]).toMatchObject({ daily: [true, false], weeklyCleared: false });
-    expect(days[1]).toMatchObject({ daily: [false, false], weeklyCleared: true });
-    expect(days[2]).toMatchObject({ daily: [false, true], weeklyCleared: false });
+    expect(days[0]).toMatchObject({ cleared: 1, total: 2 });
+    expect(days[2]).toMatchObject({ cleared: 1, total: 2 });
+  });
+
+  it('counts only daily missions', () => {
+    const days = timelineDays(week, [clear('w', '2026-10-20')], 0);
+    expect(days[1]).toMatchObject({ cleared: 0, level: 0 });
+  });
+
+  it('gets darker as more daily missions are cleared', () => {
+    const three = { ...week, missions: [...week.missions, mission('c', 'daily')] };
+    const levels = (ids: string[]) =>
+      timelineDays(
+        three,
+        ids.map((id) => clear(id, '2026-10-19')),
+        0,
+      )[0].level;
+    expect([levels([]), levels(['a']), levels(['a', 'b']), levels(['a', 'b', 'c'])]).toEqual([
+      0, 2, 3, 4,
+    ]);
+  });
+
+  it('stays empty in a week without daily missions', () => {
+    const weeklyOnly = { ...week, missions: [mission('w', 'weekly')] };
+    expect(timelineDays(weeklyOnly, [], 0)[0]).toMatchObject({ total: 0, level: 0 });
   });
 });

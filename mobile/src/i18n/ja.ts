@@ -39,6 +39,8 @@ export const ja: Dictionary = {
   'progress.mode.buttons': 'ボタン',
   'progress.mode.bar': 'バー',
   'progress.mode.number': '数値',
+  'remaining.minutes': 'あと{value}分',
+  'remaining.hours': 'あと{value}時間',
   'progress.save': '記録',
   'progress.complete': 'すべて完了',
 

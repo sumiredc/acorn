@@ -1,4 +1,4 @@
-import { dateKey, mondayKey, weekDateKeys } from '../clock';
+import { dateKey, HOUR_MS, MINUTE_MS, mondayKey, remainingTime, weekDateKeys } from '../clock';
 
 const at = (y: number, m: number, d: number, h = 12) => new Date(y, m - 1, d, h).getTime();
 
@@ -33,5 +33,18 @@ describe('weekDateKeys', () => {
 describe('dateKey', () => {
   it('uses local time and zero-pads', () => {
     expect(dateKey(at(2026, 1, 5, 0))).toBe('2026-01-05');
+  });
+});
+
+describe('remainingTime', () => {
+  it('shows minutes under an hour, rounded up', () => {
+    expect(remainingTime(59 * MINUTE_MS + 1)).toEqual({ unit: 'minutes', value: 60 });
+    expect(remainingTime(30 * 1000)).toEqual({ unit: 'minutes', value: 1 });
+    expect(remainingTime(0)).toEqual({ unit: 'minutes', value: 0 });
+  });
+
+  it('shows whole hours from an hour up', () => {
+    expect(remainingTime(HOUR_MS)).toEqual({ unit: 'hours', value: 1 });
+    expect(remainingTime(5 * HOUR_MS + 59 * MINUTE_MS)).toEqual({ unit: 'hours', value: 5 });
   });
 });

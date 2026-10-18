@@ -37,6 +37,8 @@ export const en = {
   'progress.mode.buttons': 'Buttons',
   'progress.mode.bar': 'Bar',
   'progress.mode.number': 'Number',
+  'remaining.minutes': '{value} min left',
+  'remaining.hours': '{value} h left',
   'progress.save': 'Record',
   'progress.complete': 'All done',
 

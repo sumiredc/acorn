@@ -1,10 +1,11 @@
 import { Redirect } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { balance } from '@/domain/balance';
 import { canUndo, currentClear } from '@/domain/clears';
-import { currentProgress } from '@/domain/progress';
+import { remainingTime } from '@/domain/clock';
+import { currentProgress, periodEnd } from '@/domain/progress';
 import { nextSetupStep } from '@/domain/setup';
 import { timelineDays } from '@/domain/timeline';
 import type { Mission } from '@/domain/types';
@@ -12,11 +13,11 @@ import { newId } from '@/storage/id';
 import { useAcorn } from '@/storage/store';
 import { DemoClock } from '@/ui/DemoClock';
 import { goalLabel, progressLabel } from '@/ui/missionText';
+import { PixelIcon } from '@/ui/PixelIcon';
 import { ActionButton, PixelText, Window } from '@/ui/primitives';
 import { ProgressBar } from '@/ui/ProgressBar';
 import { type InputMode, ProgressModal } from '@/ui/ProgressModal';
 import { Screen } from '@/ui/Screen';
-import { StatusDistribution } from '@/ui/StatusDistribution';
 import { colors } from '@/ui/theme';
 import { Timeline } from '@/ui/Timeline';
 import { useToast } from '@/ui/Toast';
@@ -26,6 +27,12 @@ export default function HomeScreen() {
   const toast = useToast();
   const [recording, setRecording] = useState<Mission | null>(null);
   const [mode, setMode] = useState<InputMode>('buttons');
+  // Re-render every minute so the time left and the undo button stay current.
+  const [, setMinute] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => setMinute((n) => n + 1), 60 * 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   if (nextSetupStep(data) !== null) return <Redirect href="/setup" />;
 
@@ -65,18 +72,19 @@ export default function HomeScreen() {
       {week.missions.map((m) => {
         const clear = currentClear(data.clears, m, week, at);
         const value = currentProgress(m, week, at);
+        const left = remainingTime(periodEnd(m, week, at) - at);
         return (
           <Window key={m.id} style={clear ? styles.cleared : undefined}>
             <View style={styles.header}>
+              <PixelIcon name={m.kind} size={14} color={colors.acorn} label={t(`kind.${m.kind}`)} />
               <PixelText style={styles.name}>
-                <PixelText style={styles.kind}>[{t(`kind.${m.kind}`)}]</PixelText> {m.name}
+                {m.name}
                 {m.unit !== 'percent' && (
                   <PixelText style={styles.goal}> {goalLabel(m, t)}</PixelText>
                 )}
               </PixelText>
               <PixelText style={styles.pt}>{m.pt}pt</PixelText>
             </View>
-            {m.judgement && <StatusDistribution judgement={m.judgement} />}
             <View style={styles.progressRow}>
               <View style={styles.grow}>
                 <ProgressBar value={value} unit={m.unit} target={m.target} cleared={!!clear} />
@@ -84,6 +92,9 @@ export default function HomeScreen() {
               <PixelText style={styles.progressText}>{progressLabel(m, value, t)}</PixelText>
             </View>
             <View style={styles.actions}>
+              <PixelText style={styles.left}>
+                {clear ? '' : t(`remaining.${left.unit}`, { value: left.value })}
+              </PixelText>
               {clear ? (
                 <>
                   <PixelText style={styles.clearedText}>{t('home.cleared')}</PixelText>
@@ -117,7 +128,6 @@ const styles = StyleSheet.create({
   balance: { fontSize: 24, color: colors.acorn },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
   name: { flex: 1 },
-  kind: { color: colors.acorn, fontSize: 13 },
   goal: { color: colors.sky },
   pt: { fontSize: 18 },
   cleared: { backgroundColor: colors.leafSoft },
@@ -125,5 +135,6 @@ const styles = StyleSheet.create({
   grow: { flex: 1 },
   progressText: { fontSize: 14, minWidth: 96, textAlign: 'right' },
   actions: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 10 },
+  left: { flex: 1, fontSize: 12, color: colors.muted },
   clearedText: { color: colors.leaf, fontSize: 16 },
 });

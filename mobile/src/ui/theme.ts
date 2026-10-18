@@ -14,6 +14,9 @@ export const colors = {
   berrySoft: '#f5dde2',
 };
 
+// Timeline shades from nothing cleared (0) to every daily mission cleared (4).
+export const grass = ['#e6dcc4', '#c4dfc0', '#9cc79c', '#73a97b', '#4f8a5b'];
+
 export const fonts = {
   pixel: 'DotGothic16_400Regular',
 };

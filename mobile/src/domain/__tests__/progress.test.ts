@@ -1,6 +1,7 @@
 import {
   clampProgress,
   currentProgress,
+  periodEnd,
   progressKey,
   progressStep,
   snapProgress,
@@ -80,5 +81,11 @@ describe('progressKey', () => {
     const wednesday = new Date(2026, 9, 21, 9).getTime();
     expect(currentProgress(mission('daily'), recorded, wednesday)).toBe(0);
     expect(currentProgress(mission('weekly'), recorded, wednesday)).toBe(0);
+  });
+
+  it('ends a daily period tonight and a weekly one on Sunday night', () => {
+    const wednesday = new Date(2026, 9, 21, 9).getTime();
+    expect(periodEnd(mission('daily'), week, wednesday)).toBe(new Date(2026, 9, 22).getTime());
+    expect(periodEnd(mission('weekly'), week, wednesday)).toBe(new Date(2026, 9, 26).getTime());
   });
 });

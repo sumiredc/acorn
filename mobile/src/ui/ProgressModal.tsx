@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { Modal, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
 
 import { clampProgress, progressStep, stepProgress } from '@/domain/progress';
 import type { Mission } from '@/domain/types';
 import { useAcorn } from '@/storage/store';
 
 import { amountLabel, progressLabel } from './missionText';
-import { ActionButton, Choice, Field, PixelText, Window } from './primitives';
+import { PixelIcon } from './PixelIcon';
+import { ActionButton, Field, PixelText, Window } from './primitives';
 import { ProgressBar } from './ProgressBar';
 import { colors, layout } from './theme';
 
@@ -82,12 +83,16 @@ function ProgressForm({
   return (
     <View style={styles.sheet}>
       <Window title={mission.name}>
-        <Choice
-          options={MODES.map((m) => ({ value: m, label: t(`progress.mode.${m}`) }))}
-          value={mode}
-          onChange={onModeChange}
-        />
-        <PixelText style={styles.value}>{progressLabel(mission, value, t)}</PixelText>
+        <View style={styles.valueRow}>
+          <View style={styles.iconButton} />
+          <PixelText style={styles.value}>{progressLabel(mission, value, t)}</PixelText>
+          <IconButton
+            icon="max"
+            label={t('progress.complete')}
+            disabled={value >= target}
+            onPress={() => change(target)}
+          />
+        </View>
         {mode === 'buttons' && (
           <View style={styles.stepper}>
             <ActionButton
@@ -109,6 +114,7 @@ function ProgressForm({
         {mode === 'number' && (
           <Field
             autoFocus
+            style={styles.number}
             value={text}
             onChangeText={type}
             onSubmitEditing={() => onSave(value)}
@@ -116,14 +122,59 @@ function ProgressForm({
             accessibilityLabel={t('progress.mode.number')}
           />
         )}
-        {mode !== 'bar' && <ProgressBar value={value} unit={unit} target={target} />}
-        <ActionButton label={t('progress.complete')} onPress={() => onSave(target)} />
-        <View style={styles.actions}>
-          <ActionButton tone="plain" label={t('common.cancel')} onPress={onClose} />
-          <ActionButton label={t('progress.save')} onPress={() => onSave(value)} />
+        <View style={styles.footer}>
+          <View accessibilityRole="radiogroup" style={styles.modes}>
+            {MODES.map((m) => (
+              <IconButton
+                key={m}
+                icon={m}
+                label={t(`progress.mode.${m}`)}
+                selected={m === mode}
+                onPress={() => onModeChange(m)}
+              />
+            ))}
+          </View>
+          <View style={styles.actions}>
+            <ActionButton tone="plain" label={t('common.cancel')} onPress={onClose} />
+            <ActionButton label={t('progress.save')} onPress={() => onSave(value)} />
+          </View>
         </View>
       </Window>
     </View>
+  );
+}
+
+function IconButton({
+  icon,
+  label,
+  onPress,
+  selected,
+  disabled = false,
+}: {
+  icon: 'max' | InputMode;
+  label: string;
+  onPress: () => void;
+  // Set only for the input mode switch, which acts as radio buttons.
+  selected?: boolean;
+  disabled?: boolean;
+}) {
+  const radio = selected !== undefined;
+  return (
+    <Pressable
+      accessibilityRole={radio ? 'radio' : 'button'}
+      accessibilityLabel={label}
+      accessibilityState={radio ? { checked: selected } : { disabled }}
+      disabled={disabled}
+      onPress={onPress}
+      style={[
+        styles.iconButton,
+        radio ? styles.iconRadio : styles.iconPlain,
+        selected && styles.iconSelected,
+        disabled && styles.iconDisabled,
+      ]}
+    >
+      <PixelIcon name={icon} size={14} color={selected ? colors.window : colors.ink} />
+    </Pressable>
   );
 }
 
@@ -136,7 +187,27 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   sheet: { width: '100%', maxWidth: layout.maxWidth },
-  value: { fontSize: 22, textAlign: 'center', color: colors.ink },
+  valueRow: { flexDirection: 'row', alignItems: 'center' },
+  value: { flex: 1, fontSize: 22, textAlign: 'center' },
   stepper: { flexDirection: 'row', justifyContent: 'center', gap: 16 },
-  actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, marginTop: 4 },
+  number: { textAlign: 'center', fontSize: 20 },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  modes: { flexDirection: 'row', gap: 4 },
+  actions: { flexDirection: 'row', gap: 8 },
+  iconButton: {
+    width: 34,
+    height: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 6,
+  },
+  iconPlain: { borderWidth: 2, borderColor: colors.ink, backgroundColor: colors.acornSoft },
+  iconRadio: { borderWidth: 2, borderColor: colors.soft, backgroundColor: colors.window },
+  iconSelected: { backgroundColor: colors.ink, borderColor: colors.ink },
+  iconDisabled: { opacity: 0.35 },
 });
