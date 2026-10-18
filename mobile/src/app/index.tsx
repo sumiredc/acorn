@@ -10,6 +10,7 @@ import { timelineDays } from '@/domain/timeline';
 import type { Mission } from '@/domain/types';
 import { newId } from '@/storage/id';
 import { useAcorn } from '@/storage/store';
+import { ConfirmModal } from '@/ui/ConfirmModal';
 import { DemoClock } from '@/ui/DemoClock';
 import { progressLabel } from '@/ui/missionText';
 import { PixelIcon } from '@/ui/PixelIcon';
@@ -26,6 +27,7 @@ export default function HomeScreen() {
   const toast = useToast();
   const [recording, setRecording] = useState<Mission | null>(null);
   const [mode, setMode] = useState<InputMode>('buttons');
+  const [undoing, setUndoing] = useState<Mission | null>(null);
   // Real time as state, refreshed by the timers below. Reading Date.now() during render
   // would not refresh the screen, because the React Compiler memoizes the render.
   const [realNow, setRealNow] = useState(() => Date.now());
@@ -53,7 +55,10 @@ export default function HomeScreen() {
     if (value >= mission.target) toast(t('home.clearToast', { pt: mission.pt! }), 'success');
   }
 
-  function undo(mission: Mission) {
+  function undo() {
+    const mission = undoing;
+    setUndoing(null);
+    if (!mission) return;
     const clear = currentClear(data.clears, mission, week, now());
     if (!clear || !canUndo(data, clear, now())) {
       toast(t('home.undoRefused'));
@@ -97,7 +102,11 @@ export default function HomeScreen() {
                 <>
                   <PixelText style={styles.clearedText}>{t('home.cleared')}</PixelText>
                   {canUndo(data, clear, at) && (
-                    <ActionButton tone="plain" label={t('home.undo')} onPress={() => undo(m)} />
+                    <ActionButton
+                      tone="plain"
+                      label={t('home.undo')}
+                      onPress={() => setUndoing(m)}
+                    />
                   )}
                 </>
               ) : isCheckOnly(m) ? (
@@ -110,6 +119,12 @@ export default function HomeScreen() {
         );
       })}
       <DemoClock />
+      <ConfirmModal
+        message={undoing && t('home.undoConfirm', { name: undoing.name })}
+        confirmLabel={t('home.undo')}
+        onConfirm={undo}
+        onCancel={() => setUndoing(null)}
+      />
       <ProgressModal
         mission={recording}
         value={recording ? currentProgress(recording, week, at) : 0}

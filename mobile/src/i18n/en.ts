@@ -1,6 +1,7 @@
 export const en = {
   'app.name': 'Acorn',
   'common.next': 'Next',
+  'common.close': 'Close',
   'common.cancel': 'Cancel',
 
   'setup.title': 'Getting ready',
@@ -52,6 +53,7 @@ export const en = {
   'home.undo': 'Undo',
   'home.check': 'Done',
   'home.clearToast': 'Mission clear! +{pt}pt',
+  'home.undoConfirm': 'Undo clearing "{name}"?',
   'home.undoToast': 'Undone. -{pt}pt',
   'home.undoRefused': 'This clear can no longer be undone.',
   'demo.label': 'Demo',

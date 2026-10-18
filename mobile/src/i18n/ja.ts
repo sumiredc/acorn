@@ -3,6 +3,7 @@ import type { Dictionary } from './index';
 export const ja: Dictionary = {
   'app.name': 'Acorn',
   'common.next': '次へ',
+  'common.close': '閉じる',
   'common.cancel': 'キャンセル',
 
   'setup.title': 'はじめる準備',
@@ -54,6 +55,7 @@ export const ja: Dictionary = {
   'home.undo': '取り消す',
   'home.check': '完了',
   'home.clearToast': 'ミッションクリア！ +{pt}pt',
+  'home.undoConfirm': '「{name}」のクリアを取り消しますか？',
   'home.undoToast': '取り消しました。-{pt}pt',
   'home.undoRefused': 'このクリアはもう取り消せません。',
   'demo.label': 'デモ用',
