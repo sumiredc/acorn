@@ -42,7 +42,11 @@ export default function HomeScreen() {
   } | null>(null);
   // Points on their way to the total. The total holds them back until they arrive, then
   // counts up; `flight` stays null when the positions can't be measured.
-  const [pending, setPending] = useState<{ pt: number; flight: Flight | null } | null>(null);
+  const [pending, setPending] = useState<{
+    missionId: string;
+    pt: number;
+    flight: Flight | null;
+  } | null>(null);
   const ptRefs = useRef(new Map<string, ViewHandle | null>());
   const counterRef = useRef<ViewHandle>(null);
   const overlayRef = useRef<ViewHandle>(null);
@@ -67,6 +71,15 @@ export default function HomeScreen() {
   const week = data.week!;
   const at = appNow(realNow, data.clockOffsetMs);
 
+  // Missions still to do come first. A card that was just cleared keeps its place until its
+  // points have reached the total, so the celebration plays where it happened.
+  const sinksToBottom = (m: Mission) =>
+    currentClear(data.clears, m, week, at) !== undefined && pending?.missionId !== m.id;
+  const orderedMissions = [
+    ...week.missions.filter((m) => !sinksToBottom(m)),
+    ...week.missions.filter(sinksToBottom),
+  ];
+
   function record(mission: Mission, value: number) {
     setRecording(null);
     const completes = completesToday(week, data.clears, mission, now());
@@ -75,7 +88,7 @@ export default function HomeScreen() {
     // Saved from the record window: start once the window has faded out.
     const delay = recording ? 250 : 0;
     setCelebrating((prev) => ({ missionId: mission.id, key: (prev?.key ?? 0) + 1, delay }));
-    setPending({ pt: mission.pt!, flight: null });
+    setPending({ missionId: mission.id, pt: mission.pt!, flight: null });
     launchPoints(mission, delay);
     toast(t(completes ? 'home.puzzleToast' : 'home.clearToast', { pt: mission.pt! }), 'success');
   }
@@ -91,6 +104,7 @@ export default function HomeScreen() {
       return;
     }
     setPending((prev) => ({
+      missionId: mission.id,
       pt: mission.pt!,
       flight: {
         key: (prev?.flight?.key ?? 0) + 1,
@@ -137,7 +151,7 @@ export default function HomeScreen() {
         <Timeline days={timelineDays(week, data.clears, at)} />
       </Window>
       <PixelText style={styles.section}>{t('home.missions')}</PixelText>
-      {week.missions.map((m) => {
+      {orderedMissions.map((m) => {
         const clear = currentClear(data.clears, m, week, at);
         const value = currentProgress(m, week, at);
         const left = remainingTime(periodEnd(m, week, at) - at);

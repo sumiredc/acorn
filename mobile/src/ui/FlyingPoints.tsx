@@ -5,6 +5,8 @@ import { SPARK_COLORS } from './Sparks';
 import { colors, fonts } from './theme';
 
 const useNativeDriver = Platform.OS !== 'web';
+// Points sampled along the curve; the animation runs straight between them.
+const STEPS = 16;
 // Sparkles trailing behind the points, each a little later along the same arc.
 const TRAIL = 6;
 const TRAIL_LAG = 0.06;
@@ -12,7 +14,8 @@ const TRAIL_LAG = 0.06;
 export type Point = { x: number; y: number };
 export type Flight = { key: number; pt: number; from: Point; to: Point; delay: number };
 
-// "+Npt" flies in an arc from a cleared mission to the total, then calls onArrive.
+// "+Npt" flies from a cleared mission to the total, swinging out to the left and curving back
+// right, then calls onArrive.
 // Coordinates are relative to the overlay this is drawn in.
 export function FlyingPoints({ flight, onArrive }: { flight: Flight; onArrive: () => void }) {
   const [progress] = useState(() => new Animated.Value(0));
@@ -23,7 +26,7 @@ export function FlyingPoints({ flight, onArrive }: { flight: Flight; onArrive: (
       Animated.delay(flight.delay),
       Animated.timing(progress, {
         toValue: 1,
-        duration: 700,
+        duration: 850,
         easing: Easing.inOut(Easing.quad),
         useNativeDriver,
       }),
@@ -33,25 +36,24 @@ export function FlyingPoints({ flight, onArrive }: { flight: Flight; onArrive: (
   }, [flight.key, flight.delay, onArrive, progress]);
 
   const { from, to } = flight;
-  // Arc upward, but never above the top of the screen.
-  const peak = Math.max(4, Math.min(from.y, to.y) - 40);
-  // Position along the arc for progress that starts at `lag` instead of 0.
-  const along = (lag: number) => [
-    {
-      translateX: progress.interpolate({
-        inputRange: [lag, 1],
-        outputRange: [from.x, to.x],
-        extrapolate: 'clamp',
-      }),
-    },
-    {
-      translateY: progress.interpolate({
-        inputRange: [lag, lag + 0.4 * (1 - lag), 1],
-        outputRange: [from.y, peak, to.y],
-        extrapolate: 'clamp',
-      }),
-    },
-  ];
+  // A quadratic curve whose control point sits left of both ends, kept on screen.
+  const control = {
+    x: Math.max(8, Math.min(from.x, to.x) - 160),
+    y: Math.max(4, (from.y + to.y) / 2),
+  };
+  const ts = Array.from({ length: STEPS + 1 }, (_, i) => i / STEPS);
+  const curve = (a: number, c: number, b: number) =>
+    ts.map((t) => (1 - t) ** 2 * a + 2 * (1 - t) * t * c + t ** 2 * b);
+  const xs = curve(from.x, control.x, to.x);
+  const ys = curve(from.y, control.y, to.y);
+  // Position along the curve for progress that starts at `lag` instead of 0.
+  const along = (lag: number) => {
+    const inputRange = ts.map((t) => lag + t * (1 - lag));
+    return [
+      { translateX: progress.interpolate({ inputRange, outputRange: xs, extrapolate: 'clamp' }) },
+      { translateY: progress.interpolate({ inputRange, outputRange: ys, extrapolate: 'clamp' }) },
+    ];
+  };
   return (
     <>
       {Array.from({ length: TRAIL }, (_, i) => {
