@@ -67,8 +67,8 @@ Build mode: fast
 ## Final Review
 
 - [x] クリアしたときのトースト（「ミッションクリア！」「今日のパズル完成！」）を出さない
-- [ ] 設定画面（名前と言語の変更）を作る
-- [ ] ホームの右上を、累計ではなく手持ちのどんぐり（交換すると減る）にする
+- [x] 設定画面（名前と言語の変更）を作る
+- [x] ホームの右上を、累計ではなく手持ちのどんぐり（交換すると減る）にする
 - [ ] Final review complete — feedback resolved and learner confirms ready to ship
 
 ## Code Tour and App Map
