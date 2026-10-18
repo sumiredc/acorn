@@ -6,7 +6,7 @@ on:
 
 jobs:
   api:
-    runs-on: arc-runner-acorn
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: api
@@ -23,7 +23,7 @@ jobs:
       - run: uv run pytest
 
   mobile:
-    runs-on: arc-runner-acorn
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: mobile

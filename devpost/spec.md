@@ -40,7 +40,7 @@ PRD ref: `prd.md > The Core Journey`
 | 多言語 | `expo-localization`（端末の言語）+ 自前の型付き辞書（`src/i18n/`） | 学習者の判断：最初の画面で選ぶ（端末の言語が初期値）。辞書を型で縛り、英日でキーの漏れがあれば tsc で落とす |
 | テスト | ユニットテストのみ。アプリ：Jest（`jest-expo`）+ tsc、API：pytest | 学習者の判断：E2E は今は不要。ユニットテストしやすい粒度に分ける（`Testability`） |
 | 静的解析 | API：ruff（format + lint）、mypy。アプリ：Prettier、ESLint（`eslint-config-expo`）、tsc | 学習者の判断：formatter と linter を CI に入れる |
-| CI | GitHub Actions、self-hosted runner（k8s 上の ARC、scale set `arc-runner-acorn`）。リポジトリは提出まで private | 学習者の判断。runner は aidd-infra が用意（sumiredc/aidd-infra#453） |
+| CI | GitHub Actions、GitHub が用意する runner（`ubuntu-latest`） | 学習者の判断。開発中は自宅の k8s の self-hosted runner を使っていたが、公開すると外部のプルリクエストのコードがその runner で動くため、公開前に移した |
 
 ドキュメント：
 - Expo: https://docs.expo.dev/ / SDK 57: https://expo.dev/changelog/sdk-57
@@ -153,11 +153,10 @@ PRD ref: `prd.md > 報酬とその価格（ショップ）`, `prd.md > ミッシ
 - Jest と pytest はローカルでも CI でも同じコマンドで動かす。
 
 ## Static Analysis and CI
-`.github/workflows/ci.yml`。push と pull request のたびに、`runs-on: arc-runner-acorn` で 2 つのジョブを走らせる。runner のイメージには Node も uv も入っていないため、各ジョブで用意する。Docker は使えない。pod はジョブごとに作り直されるので、キャッシュは setup 系の action に任せる。
+`.github/workflows/ci.yml`。push と pull request のたびに、`runs-on: ubuntu-latest` で 2 つのジョブを走らせる。Node と uv は各ジョブで用意し、キャッシュは setup 系の action に任せる。
 - **api**（`api/` で実行）：`astral-sh/setup-uv`（キャッシュ有効、Python は `api/.python-version` の 3.12）→ `uv sync --frozen` → `uv run ruff format --check .` → `uv run ruff check .` → `uv run mypy src` → `uv run pytest`
 - **mobile**（`mobile/` で実行）：`actions/setup-node`（node-version: 24、npm キャッシュ）→ `npm ci` → `npx prettier --check .` → `npx expo lint` → `npx tsc --noEmit` → `npx jest --ci`
 - CI では API キーを使わない（テストは偽の Jev で動く）。
-- runner は実装の前に用意する（学習者の判断）。aidd-infra が PR（sumiredc/aidd-infra#453）を出した。ユーザーがマージして適用すると使えるようになる。ARC では独自のラベルを付けられないため、scale set 名で指定する。
 
 ## Pricing Rules
 `api/src/acorn_api/pricing.py` に実装し、pytest で確かめる。PRD ref: `prd.md > 報酬とその価格（ショップ）`, `prd.md > ミッションとその pt`, `prd.md > Product Decisions`。
