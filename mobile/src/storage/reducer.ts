@@ -1,5 +1,5 @@
-import { canAddMission, canFinishMissions, ensureWeek } from '@/domain/week';
-import type { AcornData, Judgement, Locale, MissionKind } from '@/domain/types';
+import { canAddMission, canFinishMissions, ensureWeek, missionTarget } from '@/domain/week';
+import type { AcornData, Judgement, Locale, MissionKind, MissionUnit } from '@/domain/types';
 
 export type ScoredMission = { id: string; pt: number; judgement: Judgement };
 
@@ -7,7 +7,14 @@ export type Action =
   | { type: 'tick' }
   | { type: 'setUserName'; name: string }
   | { type: 'setBudget'; budgetUsd: number }
-  | { type: 'addMission'; id: string; name: string; kind: MissionKind }
+  | {
+      type: 'addMission';
+      id: string;
+      name: string;
+      kind: MissionKind;
+      unit: MissionUnit;
+      target: number;
+    }
   | { type: 'removeMission'; id: string }
   | { type: 'missionsScored'; results: ScoredMission[] }
   | { type: 'setLocale'; locale: Locale };
@@ -33,10 +40,11 @@ export function reduce(data: AcornData, action: Action, now: number): AcornData 
 
     case 'addMission': {
       const name = action.name.trim();
-      if (week.status !== 'setup' || !name || !canAddMission(week.missions, action.kind)) {
-        return current;
-      }
-      const mission = { id: action.id, name, kind: action.kind, pt: null, judgement: null };
+      const target = missionTarget(action.unit, action.target);
+      if (week.status !== 'setup' || !name || target === null) return current;
+      if (!canAddMission(week.missions, action.kind)) return current;
+      const { id, kind, unit } = action;
+      const mission = { id, name, kind, unit, target, pt: null, judgement: null };
       return { ...current, week: { ...week, missions: [...week.missions, mission] } };
     }
 

@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { nextSetupStep } from '@/domain/setup';
 import { useAcorn } from '@/storage/store';
+import { goalLabel } from '@/ui/missionText';
 import { PixelText, Window } from '@/ui/primitives';
 import { Screen } from '@/ui/Screen';
 import { StatusDistribution } from '@/ui/StatusDistribution';
@@ -22,6 +23,7 @@ export default function HomeScreen() {
           <View style={styles.header}>
             <PixelText style={styles.name}>
               <PixelText style={styles.kind}>[{t(`kind.${m.kind}`)}]</PixelText> {m.name}
+              {m.unit !== 'none' && <PixelText style={styles.goal}> {goalLabel(m, t)}</PixelText>}
             </PixelText>
             <PixelText style={styles.pt}>{m.pt}pt</PixelText>
           </View>
@@ -38,5 +40,6 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
   name: { flex: 1 },
   kind: { color: colors.acorn, fontSize: 13 },
+  goal: { color: colors.sky },
   pt: { fontSize: 18 },
 });

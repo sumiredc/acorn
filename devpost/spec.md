@@ -196,6 +196,7 @@ type Judgement = { choice: string; probabilities: Record<string, number>; confid
 type Reward = { id: string; name: string; pt: number; mode: "price" | "period";
   judgement: Judgement; status: "available" | "redeemed"; createdAt: number; redeemedAt?: number };
 type Mission = { id: string; name: string; kind: "daily" | "weekly";
+  unit: "none" | "count" | "minutes"; target: number;   // none のときは 1
   pt: number | null; judgement: Judgement | null };   // 採点前は null
 type Week = { weekStart: string;     // 月曜の日付 "YYYY-MM-DD"
   status: "setup" | "active"; missions: Mission[] };

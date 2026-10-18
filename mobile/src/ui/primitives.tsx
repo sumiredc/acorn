@@ -61,8 +61,46 @@ export function ActionButton({
         pressed && !disabled && styles.buttonPressed,
       ]}
     >
-      <PixelText style={[styles.buttonLabel, wide && styles.buttonLabelWide]}>▶ {label}</PixelText>
+      {/* ▶ marks only the actions that move you forward. */}
+      <PixelText style={[styles.buttonLabel, wide && styles.buttonLabelWide]}>
+        {wide ? `▶ ${label}` : label}
+      </PixelText>
     </Pressable>
+  );
+}
+
+// A row of options where exactly one is selected, such as a language or a mission kind.
+export function Choice<T extends string>({
+  options,
+  value,
+  onChange,
+  disabled = false,
+}: {
+  options: { value: T; label: string }[];
+  value: T;
+  onChange: (value: T) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <View accessibilityRole="radiogroup" style={styles.choice}>
+      {options.map((option) => {
+        const selected = option.value === value;
+        return (
+          <Pressable
+            key={option.value}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: selected, disabled }}
+            disabled={disabled}
+            onPress={() => onChange(option.value)}
+            style={[styles.option, selected && styles.optionSelected]}
+          >
+            <PixelText style={[styles.optionLabel, selected && styles.optionLabelSelected]}>
+              {option.label}
+            </PixelText>
+          </Pressable>
+        );
+      })}
+    </View>
   );
 }
 
@@ -102,6 +140,17 @@ const styles = StyleSheet.create({
   buttonPressed: { transform: [{ translateY: 1 }] },
   buttonLabel: { fontSize: 14 },
   buttonLabelWide: { fontSize: 16, textAlign: 'center' },
+  choice: {
+    flexDirection: 'row',
+    borderColor: colors.ink,
+    borderWidth: 2,
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  option: { flex: 1, paddingVertical: 8, alignItems: 'center', backgroundColor: colors.window },
+  optionSelected: { backgroundColor: colors.ink },
+  optionLabel: { fontSize: 14, color: colors.muted },
+  optionLabelSelected: { color: colors.window },
   field: {
     fontFamily: fonts.pixel,
     fontSize: 16,

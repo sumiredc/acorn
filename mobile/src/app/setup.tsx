@@ -4,19 +4,22 @@ import { StyleSheet, View } from 'react-native';
 
 import { apiClient } from '@/api/client';
 import { nextSetupStep } from '@/domain/setup';
-import type { Locale, MissionKind } from '@/domain/types';
-import { canAddMission, canFinishMissions } from '@/domain/week';
+import type { Locale, MissionKind, MissionUnit } from '@/domain/types';
+import { canAddMission, canFinishMissions, missionTarget } from '@/domain/week';
 import { useAcorn } from '@/storage/store';
-import { ActionButton, ErrorText, Field, PixelText, Window } from '@/ui/primitives';
+import { goalLabel } from '@/ui/missionText';
+import { ActionButton, Choice, ErrorText, Field, PixelText, Window } from '@/ui/primitives';
 import { Screen } from '@/ui/Screen';
 import { colors } from '@/ui/theme';
 import { useToast } from '@/ui/Toast';
 
 // Language names stay in their own language so either reader can find theirs.
-const LANGUAGES: { locale: Locale; label: string }[] = [
-  { locale: 'en', label: 'English' },
-  { locale: 'ja', label: '日本語' },
+const LANGUAGES: { value: Locale; label: string }[] = [
+  { value: 'en', label: 'English' },
+  { value: 'ja', label: '日本語' },
 ];
+const KINDS: MissionKind[] = ['daily', 'weekly'];
+const UNITS: MissionUnit[] = ['none', 'count', 'minutes'];
 
 function newId(): string {
   return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
@@ -46,16 +49,7 @@ function LanguageStep() {
     <>
       <Window title={t('setup.language.title')}>
         <PixelText style={styles.help}>{t('setup.language.help')}</PixelText>
-        <View style={styles.inline}>
-          {LANGUAGES.map((l) => (
-            <ActionButton
-              key={l.locale}
-              tone={choice === l.locale ? 'acorn' : 'plain'}
-              label={l.label}
-              onPress={() => setChoice(l.locale)}
-            />
-          ))}
-        </View>
+        <Choice options={LANGUAGES} value={choice} onChange={setChoice} />
       </Window>
       <ActionButton
         wide
@@ -128,14 +122,25 @@ function MissionsStep() {
   const missions = data.week?.missions ?? [];
   const [name, setName] = useState('');
   const [kind, setKind] = useState<MissionKind>('daily');
+  const [unit, setUnit] = useState<MissionUnit>('none');
+  const [targetText, setTargetText] = useState('');
   const [sending, setSending] = useState(false);
   const canAdd = !sending && canAddMission(missions, kind);
+  const target = missionTarget(unit, Number(targetText));
+  const ready =
+    canAdd && name.trim() !== '' && (unit === 'none' || targetText !== '') && target !== null;
 
   async function score() {
     setSending(true);
     const result = await apiClient.judgeMissions(
       data.budgetUsd!,
-      missions.map((m) => ({ id: m.id, name: m.name, kind: m.kind })),
+      missions.map((m) => ({
+        id: m.id,
+        name: m.name,
+        kind: m.kind,
+        unit: m.unit,
+        target: m.target,
+      })),
     );
     setSending(false);
     if (result.ok) dispatch({ type: 'missionsScored', results: result.data });
@@ -143,8 +148,10 @@ function MissionsStep() {
   }
 
   function add() {
-    dispatch({ type: 'addMission', id: newId(), name, kind });
+    if (!ready) return;
+    dispatch({ type: 'addMission', id: newId(), name, kind, unit, target: target! });
     setName('');
+    setTargetText('');
   }
 
   return (
@@ -155,6 +162,7 @@ function MissionsStep() {
           <View key={m.id} style={styles.missionRow}>
             <PixelText style={styles.grow}>
               <PixelText style={styles.kind}>[{t(`kind.${m.kind}`)}]</PixelText> {m.name}
+              {m.unit !== 'none' && <PixelText style={styles.goal}> {goalLabel(m, t)}</PixelText>}
             </PixelText>
             <ActionButton
               tone="plain"
@@ -164,33 +172,46 @@ function MissionsStep() {
             />
           </View>
         ))}
-        <View style={styles.inline}>
-          {(['daily', 'weekly'] as const).map((k) => (
-            <ActionButton
-              key={k}
-              tone={kind === k ? 'acorn' : 'plain'}
-              label={t(`kind.${k}`)}
-              onPress={() => setKind(k)}
-            />
-          ))}
-        </View>
+        <Choice
+          options={KINDS.map((k) => ({ value: k, label: t(`kind.${k}`) }))}
+          value={kind}
+          onChange={setKind}
+          disabled={sending}
+        />
         <Field
           value={name}
           onChangeText={setName}
-          onSubmitEditing={() => canAdd && name.trim() && add()}
+          onSubmitEditing={add}
           placeholder={t('setup.missions.placeholder')}
           accessibilityLabel={t('setup.missions.placeholder')}
         />
+        <PixelText style={styles.help}>{t('setup.missions.unit')}</PixelText>
+        <Choice
+          options={UNITS.map((u) => ({ value: u, label: t(`unit.${u}`) }))}
+          value={unit}
+          onChange={setUnit}
+          disabled={sending}
+        />
+        {unit !== 'none' && (
+          <View style={styles.inline}>
+            <Field
+              style={styles.grow}
+              value={targetText}
+              onChangeText={setTargetText}
+              onSubmitEditing={add}
+              keyboardType="number-pad"
+              placeholder={unit === 'count' ? '20' : '30'}
+              accessibilityLabel={t('setup.missions.target')}
+            />
+            <PixelText>{t(`goal.${unit}`, { target: '' }).trim()}</PixelText>
+          </View>
+        )}
         {!canAdd && (
           <PixelText style={styles.help}>
             {t('setup.missions.full', { kind: t(`kind.${kind}`) })}
           </PixelText>
         )}
-        <ActionButton
-          label={t('setup.missions.add')}
-          disabled={!canAdd || !name.trim()}
-          onPress={add}
-        />
+        <ActionButton label={t('setup.missions.add')} disabled={!ready} onPress={add} />
       </Window>
       <ActionButton
         wide
@@ -208,4 +229,5 @@ const styles = StyleSheet.create({
   grow: { flex: 1 },
   missionRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   kind: { color: colors.acorn, fontSize: 13 },
+  goal: { color: colors.sky },
 });

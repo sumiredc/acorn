@@ -13,7 +13,9 @@ describe('createApiClient', () => {
       }),
     );
     const client = createApiClient(fetchFn, 'http://api');
-    const result = await client.judgeMissions(500, [{ id: 'a', name: 'A', kind: 'daily' }]);
+    const result = await client.judgeMissions(500, [
+      { id: 'a', name: 'A', kind: 'daily', unit: 'count', target: 20 },
+    ]);
 
     expect(result).toEqual({
       ok: true,
@@ -28,7 +30,7 @@ describe('createApiClient', () => {
     const [, init] = fetchFn.mock.calls[0] as unknown as [string, RequestInit];
     expect(JSON.parse(init.body as string)).toEqual({
       budgetUsd: 500,
-      missions: [{ id: 'a', name: 'A', kind: 'daily' }],
+      missions: [{ id: 'a', name: 'A', kind: 'daily', unit: 'count', target: 20 }],
     });
   });
 

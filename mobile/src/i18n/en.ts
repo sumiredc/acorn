@@ -14,7 +14,9 @@ export const en = {
   'setup.budget.invalid': 'Enter an amount above 0.',
   'setup.missions.title': "This week's missions",
   'setup.missions.help': 'Up to 3 daily and 1 weekly. At least 1 in total.',
-  'setup.missions.placeholder': 'e.g. Push-ups',
+  'setup.missions.placeholder': 'e.g. Push-ups, Run 5 km',
+  'setup.missions.unit': 'Goal',
+  'setup.missions.target': 'Target',
   'setup.missions.add': 'Add',
   'setup.missions.remove': 'Remove',
   'setup.missions.full': 'No more {kind} missions this week.',
@@ -23,6 +25,11 @@ export const en = {
 
   'kind.daily': 'Daily',
   'kind.weekly': 'Weekly',
+  'unit.none': 'None',
+  'unit.count': 'Count',
+  'unit.minutes': 'Time',
+  'goal.count': '{target} times',
+  'goal.minutes': '{target} min',
 
   'home.title': 'Home',
   'home.greeting': 'Welcome back, {name}!',

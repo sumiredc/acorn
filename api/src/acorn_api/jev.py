@@ -6,7 +6,7 @@ from typing import Protocol
 
 from typesafe_sdk import AsyncTypeSafeClient, Choice, Score, TypeSafeError
 
-from acorn_api.pricing import LEVEL_KEYS, Judgement, MissionKind, most_likely
+from acorn_api.pricing import LEVEL_KEYS, Judgement, MissionKind, MissionUnit, most_likely
 
 MODEL = "jev-1.13.0"
 
@@ -42,7 +42,7 @@ PERIOD_CRITERIA: dict[str, str | None] = {
     "y1": "About 1 year of effort",
 }
 
-FREQUENCY = {"daily": "every day", "weekly": "once a week"}
+FREQUENCY = {"daily": "every day", "weekly": "within a week"}
 
 
 class JudgeError(Exception):
@@ -54,6 +54,16 @@ class MissionInput:
     id: str
     name: str
     kind: MissionKind
+    unit: MissionUnit = "none"
+    target: int = 1
+
+
+def goal_text(unit: MissionUnit, target: int) -> str:
+    if unit == "count":
+        return f"{target} times"
+    if unit == "minutes":
+        return f"{target} minutes in total"
+    return "do it once"
 
 
 @dataclass(frozen=True)
@@ -74,11 +84,18 @@ class JevJudge:
 
     async def judge_missions(self, missions: Sequence[MissionInput]) -> Mapping[str, Judgement]:
         # One request, one Score question per mission, so a week is judged together.
-        state = {m.id: {"mission": m.name, "frequency": FREQUENCY[m.kind]} for m in missions}
+        state = {
+            m.id: {
+                "mission": m.name,
+                "goal": goal_text(m.unit, m.target),
+                "frequency": FREQUENCY[m.kind],
+            }
+            for m in missions
+        }
         questions = {
             m.id: Score(
-                instructions=f"How hard is it for an ordinary adult to complete mission {m.id} "
-                f"{FREQUENCY[m.kind]}?",
+                instructions=f"How hard is it for an ordinary adult to reach the goal of "
+                f"mission {m.id} {FREQUENCY[m.kind]}?",
                 criteria=LEVEL_CRITERIA,
             )
             for m in missions

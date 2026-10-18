@@ -34,7 +34,7 @@ Build mode: fast
   Why now: 稼ぐ側のループが閉じる。毎日のループが見えて、デモの前半が成り立つ。
   PRD ref: `prd.md > ホームのタイムライン`, `prd.md > クリアと取り消し`, `prd.md > デモ用の時間操作`
   Spec ref: `spec.md > Domain（ゲームのルール、純粋な関数）`, `spec.md > Screens`, `spec.md > UI Parts`, `spec.md > Data Model`
-  Build: `clears.ts`・`balance.ts` と `clock.ts` の時間のずらしを書く。`index.tsx`（残高・タイムライン・クリア / 取り消し）、`Timeline`、`DemoClock`（「日を進める」）、`_layout.tsx` のナビとトーストを作る。
+  Build: 回数・時間のミッションの進み具合の記録（目標に届いたらクリア）、`clears.ts`・`balance.ts` と `clock.ts` の時間のずらしを書く。`index.tsx`（残高・タイムライン・クリア / 取り消し）、`Timeline`、`DemoClock`（「日を進める」）、`_layout.tsx` のナビとトーストを作る。
   Verify (mechanical): 静的解析（prettier・lint・tsc）と `npx jest`（デイリーは 1 日 1 回・ウィークリーは週 1 回、採点前はクリアできない、30 分の取り消し、残高不足では取り消せない、残高の計算、日を進めたあとの日付と取り消しの期限、タイムラインの表示データ）が通る。`npx expo export -p web` が成功する。CI が緑になる。
   Learner check: ホームでミッションをクリアし、取り消してみる。「日を進める」を何回か押して、タイムラインと残高の動きを見る。
   Commit: `Add home timeline with clears, undo, and day advance`
@@ -88,3 +88,5 @@ Activity mode:
 - 画面のファイルを `mobile/app/` ではなく `mobile/src/app/` に置き、Store は JSX を含むため `store.tsx` にした — SDK 58 のテンプレートと Expo Router の慣例に合わせた。spec の File Structure の `mobile/app/...` は `mobile/src/app/...` と読み替える。
 - `compose.yaml` の CORS の許可元を `ACORN_CORS_ORIGINS` で上書きできるようにした — この Mac では 8081 番が別のプロジェクトの開発サーバーに使われていたため、8082 番でも動かせるようにした。
 - スライス 2 のあとの確認で、学習者が次を決めた：日本語はひらがな表記をやめて普通の漢字かな交じりに。画面に「Jev」の名前を出さず「ポイントを決める」と言う。言語はアプリ内で切り替えず、最初の画面で選ぶ（端末の言語が初期値）。採点は別の画面に移らず、ボタンが送信中になり、失敗はトーストで出す（週の状態から「採点中」をなくした）。最初に名前を入れ、ホームであいさつする。🌰 の絵文字をやめ、ドット絵のどんぐりのロゴとアプリのアイコンを作る。prd.md と spec.md を合わせて更新した。
+- 同じ確認で、選ぶ操作（言語、デイリー / ウィークリー、単位）を「▶」付きのボタンから、選択肢の並び（Choice）に変えた。「▶」は前に進む操作（横幅いっぱいのボタン）だけに付ける。主な操作は窓の外に置く — 学習者の指摘：進むボタンかどうか分かりづらい。
+- ミッションに目標の単位（なし・回数・時間）を追加した。API の `/judge/missions` も unit と target を受け取り、Jev に目標を渡す。進み具合とクリアはスライス 3 で作る — 学習者が追加を決めた。単位を増やすと複雑になるため 3 種類に絞り、距離などは名前に含める。

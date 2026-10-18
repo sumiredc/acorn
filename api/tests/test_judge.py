@@ -3,9 +3,9 @@ from collections.abc import Iterator, Mapping, Sequence
 import pytest
 from fastapi.testclient import TestClient
 
-from acorn_api.jev import JudgeError, MissionInput, RewardJudgement
+from acorn_api.jev import JudgeError, MissionInput, RewardJudgement, goal_text
 from acorn_api.main import app, get_judge
-from acorn_api.pricing import Judgement
+from acorn_api.pricing import Judgement, MissionUnit
 
 
 class FakeJudge:
@@ -18,10 +18,12 @@ class FakeJudge:
         self.mission_levels = mission_levels or {}
         self.reward = reward
         self.fail = fail
+        self.received: list[MissionInput] = []
 
     async def judge_missions(self, missions: Sequence[MissionInput]) -> Mapping[str, Judgement]:
         if self.fail:
             raise JudgeError("boom")
+        self.received = list(missions)
         return {
             m.id: Judgement(
                 choice=self.mission_levels[m.id],
@@ -78,6 +80,38 @@ def test_missions_are_priced_from_their_levels(client: TestClient) -> None:
     assert body[1]["pt"] == 58
     assert body[1]["judgement"]["choice"] == "level_4"
     assert body[1]["judgement"]["probabilities"] == {"level_4": 0.7, "level_0": 0.3}
+
+
+def test_mission_goals_reach_the_judge(client: TestClient) -> None:
+    judge = FakeJudge(mission_levels={"a": "level_2", "b": "level_2"})
+    use(judge)
+    response = client.post(
+        "/judge/missions",
+        json={
+            "budgetUsd": 500,
+            "missions": [
+                {"id": "a", "name": "Push-ups", "kind": "daily", "unit": "count", "target": 20},
+                {"id": "b", "name": "Clean my room", "kind": "weekly"},
+            ],
+        },
+    )
+    assert response.status_code == 200
+    assert [(m.unit, m.target) for m in judge.received] == [("count", 20), ("none", 1)]
+
+
+def test_zero_target_is_rejected(client: TestClient) -> None:
+    use(FakeJudge())
+    mission = {"id": "a", "name": "x", "kind": "daily", "unit": "minutes", "target": 0}
+    response = client.post("/judge/missions", json={"budgetUsd": 500, "missions": [mission]})
+    assert response.status_code == 422
+
+
+@pytest.mark.parametrize(
+    ("unit", "target", "text"),
+    [("count", 20, "20 times"), ("minutes", 30, "30 minutes in total"), ("none", 1, "do it once")],
+)
+def test_goal_text(unit: MissionUnit, target: int, text: str) -> None:
+    assert goal_text(unit, target) == text
 
 
 def test_more_than_four_missions_is_rejected(client: TestClient) -> None:

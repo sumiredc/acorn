@@ -1,4 +1,4 @@
-import type { Judgement, MissionKind } from '@/domain/types';
+import type { Judgement, MissionKind, MissionUnit } from '@/domain/types';
 import type { ScoredMission } from '@/storage/reducer';
 
 export type ApiError = 'jev_failed' | 'network';
@@ -9,7 +9,7 @@ export type JudgedReward = { pt: number; mode: 'price' | 'period'; judgement: Ju
 export type ApiClient = {
   judgeMissions(
     budgetUsd: number,
-    missions: { id: string; name: string; kind: MissionKind }[],
+    missions: { id: string; name: string; kind: MissionKind; unit: MissionUnit; target: number }[],
   ): Promise<ApiResult<ScoredMission[]>>;
   judgeReward(budgetUsd: number, name: string): Promise<ApiResult<JudgedReward>>;
 };

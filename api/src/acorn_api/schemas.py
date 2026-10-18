@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
-from acorn_api.pricing import MissionKind, RewardMode
+from acorn_api.pricing import MissionKind, MissionUnit, RewardMode
 
 
 class CamelModel(BaseModel):
@@ -18,6 +18,8 @@ class MissionIn(CamelModel):
     id: str = Field(min_length=1)
     name: str = Field(min_length=1, max_length=200)
     kind: MissionKind
+    unit: MissionUnit = "none"
+    target: int = Field(default=1, ge=1, le=10000)
 
 
 class JudgeMissionsIn(CamelModel):

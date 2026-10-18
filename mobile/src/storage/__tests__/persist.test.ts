@@ -17,4 +17,13 @@ describe('parseSaved', () => {
     const week = { weekStart: '2026-10-19', status: 'scoring', missions: [] };
     expect(parseSaved(JSON.stringify({ week })).week!.status).toBe('setup');
   });
+
+  it('treats missions saved before units as one-off goals', () => {
+    const old = { id: 'a', name: 'A', kind: 'daily', pt: 4, judgement: null };
+    const week = { weekStart: '2026-10-19', status: 'active', missions: [old] };
+    expect(parseSaved(JSON.stringify({ week })).week!.missions[0]).toMatchObject({
+      unit: 'none',
+      target: 1,
+    });
+  });
 });

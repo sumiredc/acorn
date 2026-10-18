@@ -1,4 +1,6 @@
 export type MissionKind = 'daily' | 'weekly';
+// none: done in one go. count: N times. minutes: N minutes in total.
+export type MissionUnit = 'none' | 'count' | 'minutes';
 export type Locale = 'en' | 'ja';
 
 export type Judgement = {
@@ -22,6 +24,9 @@ export type Mission = {
   id: string;
   name: string;
   kind: MissionKind;
+  unit: MissionUnit;
+  // Always 1 for 'none'. Daily goals restart each day; weekly goals add up over the week.
+  target: number;
   // null until Jev has scored it this week.
   pt: number | null;
   judgement: Judgement | null;

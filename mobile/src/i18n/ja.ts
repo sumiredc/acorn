@@ -16,7 +16,9 @@ export const ja: Dictionary = {
   'setup.budget.invalid': '0 より大きい金額を入力してください。',
   'setup.missions.title': '今週のミッション',
   'setup.missions.help': 'デイリーは 3 件、ウィークリーは 1 件まで。合わせて 1 件以上。',
-  'setup.missions.placeholder': '例：腕立て伏せ',
+  'setup.missions.placeholder': '例：腕立て伏せ、5km 走る',
+  'setup.missions.unit': '目標',
+  'setup.missions.target': '目標の数',
   'setup.missions.add': '追加',
   'setup.missions.remove': '削除',
   'setup.missions.full': '{kind}ミッションはこれ以上追加できません。',
@@ -25,6 +27,11 @@ export const ja: Dictionary = {
 
   'kind.daily': 'デイリー',
   'kind.weekly': 'ウィークリー',
+  'unit.none': 'なし',
+  'unit.count': '回数',
+  'unit.minutes': '時間',
+  'goal.count': '{target}回',
+  'goal.minutes': '{target}分',
 
   'home.title': 'ホーム',
   'home.greeting': '{name}さん、おかえりなさい！',

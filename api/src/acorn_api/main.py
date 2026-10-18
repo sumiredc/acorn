@@ -48,7 +48,10 @@ def health() -> dict[str, str]:
 
 @app.post("/judge/missions")
 async def judge_missions(body: JudgeMissionsIn, judge: JudgeDep) -> JudgeMissionsOut:
-    missions = [MissionInput(id=m.id, name=m.name, kind=m.kind) for m in body.missions]
+    missions = [
+        MissionInput(id=m.id, name=m.name, kind=m.kind, unit=m.unit, target=m.target)
+        for m in body.missions
+    ]
     try:
         judgements = await judge.judge_missions(missions)
     except JudgeError as error:
