@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Acorn judge API: asks Jev and converts its answers into points"
 
 authors = [
-    { name = "Ryosuke Sakamoto", email = "sakamoto@sumire-sakamoto.co.jp" }
+    { name = "sumire" }
 ]
 requires-python = ">=3.12"
 dependencies = [
