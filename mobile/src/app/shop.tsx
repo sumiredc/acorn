@@ -1,6 +1,6 @@
 import { Redirect } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 
 import { balance } from '@/domain/balance';
 import { availableRewards, canAddReward, canRedeem } from '@/domain/rewards';
@@ -44,20 +44,16 @@ export default function ShopScreen() {
   return (
     <Screen
       logo={false}
-      title={t('shop.title')}
+      title={t('rewards.title')}
       right={
-        <View style={styles.onHand}>
-          <PixelText style={styles.onHandLabel}>{t('shop.balance')}</PixelText>
-          <AcornAmount
-            value={onHand}
-            size={24}
-            style={styles.balance}
-            label={t('shop.balanceSpoken', { count: onHand })}
-          />
-        </View>
+        <AcornAmount
+          value={onHand}
+          size={24}
+          style={styles.balance}
+          label={t('shop.balanceSpoken', { count: onHand })}
+        />
       }
     >
-      <PixelText style={styles.section}>{t('rewards.title')}</PixelText>
       {waiting.map((reward) => (
         <RewardCard
           key={reward.id}
@@ -97,10 +93,7 @@ export default function ShopScreen() {
 }
 
 const styles = StyleSheet.create({
-  onHand: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  onHandLabel: { fontSize: 12, color: colors.muted },
   balance: { fontSize: 22, color: colors.acorn },
-  section: { fontSize: 15, color: colors.muted },
   empty: {
     minHeight: 48,
     alignItems: 'center',

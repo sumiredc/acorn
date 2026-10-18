@@ -35,8 +35,6 @@ export const ja: Dictionary = {
   'rewards.placeholder': '例：ヘッドホン、1日休む',
   'rewards.add': '追加',
   'rewards.sending': '値段を決めています…',
-  'shop.title': 'ショップ',
-  'shop.balance': '手持ち',
   'shop.balanceSpoken': '手持ちのどんぐり {count}個',
   'shop.redeem': '交換',
   'shop.redeemed': '交換済み',
@@ -45,7 +43,7 @@ export const ja: Dictionary = {
   'shop.notEnough': 'どんぐりが足りません！',
   'shop.full': '交換待ちのごほうびは 5 件までです。交換すると追加できます。',
   'nav.home': 'ホーム',
-  'nav.shop': 'ショップ',
+  'nav.shop': 'ごほうび',
 
   'kind.daily': 'デイリー',
   'kind.weekly': 'ウィークリー',

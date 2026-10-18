@@ -33,8 +33,6 @@ export const en = {
   'rewards.placeholder': 'e.g. Headphones, A day off',
   'rewards.add': 'Add',
   'rewards.sending': 'Pricing…',
-  'shop.title': 'Shop',
-  'shop.balance': 'On hand',
   'shop.balanceSpoken': 'Acorns on hand: {count}',
   'shop.redeem': 'Redeem',
   'shop.redeemed': 'Redeemed',
@@ -43,7 +41,7 @@ export const en = {
   'shop.notEnough': 'Not enough acorns!',
   'shop.full': 'Up to 5 rewards waiting. Redeem one to add more.',
   'nav.home': 'Home',
-  'nav.shop': 'Shop',
+  'nav.shop': 'Rewards',
 
   'kind.daily': 'Daily',
   'kind.weekly': 'Weekly',

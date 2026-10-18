@@ -40,14 +40,14 @@ def test_mission_pt_is_at_least_one() -> None:
     assert pricing.mission_pt(1, "daily", "level_0") == 1
 
 
-def test_priced_reward_costs_its_dollar_band_regardless_of_budget() -> None:
-    assert pricing.reward_pt(500, "usd_300", "m6") == (300, "price")
-    assert pricing.reward_pt(50_000, "usd_300", "m6") == (300, "price")
+def test_priced_reward_costs_its_dollar_band_with_markup_regardless_of_budget() -> None:
+    assert pricing.reward_pt(500, "usd_300", "m6") == (390, "price")
+    assert pricing.reward_pt(50_000, "usd_300", "m6") == (390, "price")
 
 
-def test_unpriceable_reward_costs_its_period_of_budget() -> None:
-    assert pricing.reward_pt(500, "no_price", "w1") == (117, "period")
-    assert pricing.reward_pt(500, "no_price", "y1") == (6_000, "period")
+def test_unpriceable_reward_costs_its_period_of_budget_with_markup() -> None:
+    assert pricing.reward_pt(500, "no_price", "w1") == (152, "period")
+    assert pricing.reward_pt(500, "no_price", "y1") == (7_800, "period")
 
 
 def test_most_likely_picks_highest_probability() -> None:

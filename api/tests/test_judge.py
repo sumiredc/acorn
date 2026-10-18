@@ -143,7 +143,7 @@ def test_priced_reward_shows_the_price_distribution(client: TestClient) -> None:
     response = client.post("/judge/reward", json={"budgetUsd": 500, "name": "ヘッドホン"})
     assert response.status_code == 200
     assert response.json() == {
-        "pt": 300,
+        "pt": 390,
         "mode": "price",
         "judgement": {
             "choice": "usd_300",
@@ -164,7 +164,7 @@ def test_unpriceable_reward_uses_the_period(client: TestClient) -> None:
     )
     response = client.post("/judge/reward", json={"budgetUsd": 500, "name": "一日中ゴロゴロ"})
     body = response.json()
-    assert body["pt"] == 117
+    assert body["pt"] == 152
     assert body["mode"] == "period"
     assert body["judgement"]["choice"] == "w1"
 

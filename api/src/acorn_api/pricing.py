@@ -69,7 +69,12 @@ def mission_pt(budget_usd: float, kind: MissionKind, level: str) -> int:
     return max(1, round(mission_base(budget_usd, kind) * LEVEL_MULTIPLIERS[level]))
 
 
+# Rewards cost a bit more than their dollar value or share of the budget, so they take some
+# effort to reach (the learner's call: about 1.2 to 1.5 times).
+REWARD_MARKUP = 1.3
+
+
 def reward_pt(budget_usd: float, price: str, period: str) -> tuple[int, RewardMode]:
     if price != NO_PRICE:
-        return PRICE_USD[price], "price"
-    return max(1, round(PERIOD_MONTHS[period] * budget_usd)), "period"
+        return max(1, round(PRICE_USD[price] * REWARD_MARKUP)), "price"
+    return max(1, round(PERIOD_MONTHS[period] * budget_usd * REWARD_MARKUP)), "period"
