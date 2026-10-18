@@ -13,6 +13,7 @@ import { AcornAmount } from '@/ui/AcornAmount';
 import { AddRewardSheet } from '@/ui/AddRewardSheet';
 import { ConfirmModal } from '@/ui/ConfirmModal';
 import { IconButton } from '@/ui/IconButton';
+import { LANGUAGES, NAME_MAX } from '@/ui/languages';
 import { goalLabel } from '@/ui/missionText';
 import { MissionModal, type NewMission } from '@/ui/MissionModal';
 import { PixelIcon } from '@/ui/PixelIcon';
@@ -21,11 +22,6 @@ import { Screen } from '@/ui/Screen';
 import { colors } from '@/ui/theme';
 import { useToast } from '@/ui/Toast';
 
-// Language names stay in their own language so either reader can find theirs.
-const LANGUAGES: { value: Locale; label: string }[] = [
-  { value: 'en', label: 'English' },
-  { value: 'ja', label: '日本語' },
-];
 const KINDS: MissionKind[] = ['daily', 'weekly'];
 
 export default function SetupScreen() {
@@ -84,7 +80,7 @@ function NameStep() {
           value={name}
           onChangeText={setName}
           onSubmitEditing={submit}
-          maxLength={20}
+          maxLength={NAME_MAX}
           placeholder={t('setup.name.placeholder')}
           accessibilityLabel={t('setup.name.title')}
         />

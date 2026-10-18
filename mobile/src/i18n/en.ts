@@ -44,6 +44,10 @@ export const en = {
   'shop.full': 'Up to 5 rewards waiting. Redeem one to add more.',
   'nav.home': 'Home',
   'nav.shop': 'Rewards',
+  'nav.settings': 'Settings',
+  'settings.title': 'Settings',
+  'settings.save': 'Save',
+  'settings.nameSaved': 'Name changed',
 
   'kind.daily': 'Daily',
   'kind.weekly': 'Weekly',

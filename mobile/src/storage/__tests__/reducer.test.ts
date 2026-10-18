@@ -71,6 +71,12 @@ describe('reduce', () => {
     expect(run([{ type: 'setUserName', name: '   ' }]).userName).toBeNull();
   });
 
+  it('renames later from settings, keeping the old name when the new one is blank', () => {
+    const named = [{ type: 'setUserName', name: 'Sumire' }] as const;
+    expect(run([...named, { type: 'setUserName', name: 'Ren' }]).userName).toBe('Ren');
+    expect(run([...named, { type: 'setUserName', name: ' ' }]).userName).toBe('Sumire');
+  });
+
   it('activates the week once every mission is scored', () => {
     const data = run([
       { type: 'addMission', id: 'a', name: 'A', kind: 'daily', unit: 'percent', target: 1 },

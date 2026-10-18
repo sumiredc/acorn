@@ -46,6 +46,10 @@ export const ja: Dictionary = {
   'shop.full': '交換待ちのごほうびは 5 件までです。交換すると追加できます。',
   'nav.home': 'ホーム',
   'nav.shop': 'ごほうび',
+  'nav.settings': '設定',
+  'settings.title': '設定',
+  'settings.save': '保存',
+  'settings.nameSaved': '名前を変えました',
 
   'kind.daily': 'デイリー',
   'kind.weekly': 'ウィークリー',

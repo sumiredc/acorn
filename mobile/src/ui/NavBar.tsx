@@ -8,12 +8,17 @@ import { type IconName, PixelIcon } from './PixelIcon';
 import { PixelText } from './primitives';
 import { colors, layout } from './theme';
 
-const TABS: { href: '/' | '/shop'; icon: IconName; label: 'nav.home' | 'nav.shop' }[] = [
+const TABS: {
+  href: '/' | '/shop' | '/settings';
+  icon: IconName;
+  label: 'nav.home' | 'nav.shop' | 'nav.settings';
+}[] = [
   { href: '/', icon: 'home', label: 'nav.home' },
   { href: '/shop', icon: 'shop', label: 'nav.shop' },
+  { href: '/settings', icon: 'settings', label: 'nav.settings' },
 ];
 
-// Switches between home and the shop, replacing the screen so switching back and forth
+// Switches between home, the shop and settings, replacing the screen so switching back and forth
 // doesn't pile up screens. Hidden while getting the week ready.
 export function NavBar() {
   const { t } = useAcorn();

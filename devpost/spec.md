@@ -132,7 +132,8 @@ Expo Router のファイル。
 - `mobile/app/setup.tsx`：週の準備フロー。言語 → 名前 → 予算 → 報酬 → ミッション（引き継ぎのチェックボックス付き。「登録」で送信中になり、失敗はトースト）。PRD ref: `prd.md > 予算`, `prd.md > ミッションとその pt`
 - `mobile/app/index.tsx`：ホーム。タイムライン、今週のミッションとクリア / 取り消しボタン。準備が終わっていなければ `setup` へ移る。PRD ref: `prd.md > ホームのタイムライン`, `prd.md > クリアと取り消し`
 - `mobile/app/shop.tsx`：ショップ。報酬の一覧（価格・分布・交換 / 交換済み）と、報酬の追加（最大 5 件、交換済みは数えない）。PRD ref: `prd.md > 報酬とその価格（ショップ）`
-- `mobile/app/_layout.tsx`：フォントの読み込み、画面下のタブ（`NavBar`。ホームとショップを `router.replace` で切り替え、準備フローでは隠す）、トースト。デモ用の時間操作はホームの下に置く。
+- `mobile/app/settings.tsx`：設定。名前の変更（「保存」で `setUserName`）と言語の切り替え（選んだ瞬間に `setLocale`）。言語の一覧は準備フローと共通の `ui/languages.ts`。PRD ref: `prd.md > 設定`
+- `mobile/app/_layout.tsx`：フォントの読み込み、画面下のタブ（`NavBar`。ホーム・ショップ・設定を `router.replace` で切り替え、準備フローでは隠す）、トースト。デモ用の時間操作はホームの下に置く。
 
 ### UI Parts
 `mobile/src/ui/`：`Window.tsx`（RPG の窓）、`StatusDistribution.tsx`（確率分布）、`Timeline.tsx`（月〜日）、`Toast.tsx`、`DemoClock.tsx`（「日を進める」「週を進める」）、`theme.ts`。
@@ -229,6 +230,7 @@ bwai/
 │   │   ├── _layout.tsx             # フォント、ナビ、デモ用の時間操作、トースト
 │   │   ├── index.tsx               # ホーム（タイムライン・ミッション・クリア）
 │   │   ├── shop.tsx                # ショップ（報酬・交換・追加）
+│   │   ├── settings.tsx            # 設定（名前・言語）
 │   │   └── setup.tsx               # 週の準備フロー
 │   ├── src/
 │   │   ├── domain/                 # ゲームのルール（純粋な関数）
