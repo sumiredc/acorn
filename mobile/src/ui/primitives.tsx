@@ -10,7 +10,6 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { type IconName, PixelIcon } from './PixelIcon';
 import { colors, fonts, layout } from './theme';
 
 export function PixelText({ style, ...props }: TextProps) {
@@ -40,7 +39,6 @@ export function ActionButton({
   disabled = false,
   tone = 'acorn',
   wide = false,
-  icon,
   style,
 }: {
   label: string;
@@ -49,7 +47,6 @@ export function ActionButton({
   tone?: 'acorn' | 'plain';
   // Full width, for the main action of a screen.
   wide?: boolean;
-  icon?: IconName;
   style?: ViewStyle;
 }) {
   return (
@@ -68,12 +65,9 @@ export function ActionButton({
       ]}
     >
       {/* ▶ marks only the actions that move you forward. */}
-      <View style={styles.buttonContent}>
-        {icon && <PixelIcon name={icon} size={14} />}
-        <PixelText style={[styles.buttonLabel, wide && styles.buttonLabelWide]}>
-          {wide ? `▶ ${label}` : label}
-        </PixelText>
-      </View>
+      <PixelText style={[styles.buttonLabel, wide && styles.buttonLabelWide]}>
+        {wide ? `▶ ${label}` : label}
+      </PixelText>
     </Pressable>
   );
 }
@@ -147,7 +141,6 @@ const styles = StyleSheet.create({
   buttonWide: { alignSelf: 'stretch', paddingVertical: 12 },
   buttonDisabled: { opacity: 0.35 },
   buttonPressed: { transform: [{ translateY: 1 }] },
-  buttonContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
   buttonLabel: { fontSize: 14 },
   buttonLabelWide: { fontSize: 16, textAlign: 'center' },
   choice: {

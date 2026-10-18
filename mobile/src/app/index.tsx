@@ -12,9 +12,10 @@ import { newId } from '@/storage/id';
 import { useAcorn } from '@/storage/store';
 import { ConfirmModal } from '@/ui/ConfirmModal';
 import { DemoClock } from '@/ui/DemoClock';
+import { IconButton } from '@/ui/IconButton';
 import { progressLabel } from '@/ui/missionText';
 import { PixelIcon } from '@/ui/PixelIcon';
-import { ActionButton, PixelText, Window } from '@/ui/primitives';
+import { PixelText, Window } from '@/ui/primitives';
 import { ProgressBar } from '@/ui/ProgressBar';
 import { type InputMode, ProgressModal } from '@/ui/ProgressModal';
 import { Screen } from '@/ui/Screen';
@@ -102,17 +103,28 @@ export default function HomeScreen() {
                 <>
                   <PixelText style={styles.clearedText}>{t('home.cleared')}</PixelText>
                   {canUndo(data, clear, at) && (
-                    <ActionButton
-                      tone="plain"
+                    <IconButton
+                      icon="undo"
                       label={t('home.undo')}
                       onPress={() => setUndoing(m)}
+                      large
                     />
                   )}
                 </>
               ) : isCheckOnly(m) ? (
-                <ActionButton icon="check" label={t('home.check')} onPress={() => record(m, 1)} />
+                <IconButton
+                  icon="check"
+                  label={t('home.check')}
+                  onPress={() => record(m, 1)}
+                  large
+                />
               ) : (
-                <ActionButton label={t('home.record')} onPress={() => setRecording(m)} />
+                <IconButton
+                  icon="record"
+                  label={t('home.record')}
+                  onPress={() => setRecording(m)}
+                  large
+                />
               )}
             </View>
           </Window>
