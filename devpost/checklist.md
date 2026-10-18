@@ -9,7 +9,7 @@ Build mode: fast
 
 ## Slices
 
-- [ ] **1. API サーバーに聞くと、Jev が日本語のミッションと報酬を判定して pt を返す**
+- [x] **1. API サーバーに聞くと、Jev が日本語のミッションと報酬を判定して pt を返す**
   Becomes usable: `docker compose up` で API サーバーが起動する。`/judge/missions` と `/judge/reward` に実際の日本語の名前を送ると、実際の Jev の判定（確率分布つき）と換算した pt が返ってくる。
   Why now: いちばん大きな不確定要素（SDK でのモデルの指定方法、Jev の日本語での判定の質、レスポンスの形）を、画面を作る前に確かめるため。核心である「AI が値付けする」部分そのものでもある。ここが崩れると、後のすべてが変わる。
   PRD ref: `prd.md > ミッションとその pt`, `prd.md > 報酬とその価格（ショップ）`
@@ -19,7 +19,7 @@ Build mode: fast
   Learner check: 用意した `curl` のコマンドに、自分で考えたミッション名と報酬名（日本語・英語）を入れて実行する。返ってきた難しさや価格帯が、自分の感覚と合っているかを見る。
   Commit: `Add Jev-backed judge API for missions and rewards`
 
-- [ ] **2. 予算とミッションを登録すると、Jev の採点がステータス画面に出る**
+- [x] **2. 予算とミッションを登録すると、Jev の採点がステータス画面に出る**
   Becomes usable: ブラウザで Acorn を開くと、準備フロー（予算 → ミッション → 採点）が出る。デイリー最大 3 件・ウィークリー最大 1 件を登録して採点すると、各ミッションの pt と確率分布が RPG 風のステータス画面に表示される。リロードしても残る。失敗したらエラーと再試行が出る。表示は英語・日本語で、端末の設定に従い、アプリ内でも切り替えられる。
   Why now: 核心（AI の採点）を画面で見られる最初の一歩。見た目の方向もここで決まるので、早めに触ってもらって、残りの作り方に反映させる。多言語は、あとから入れるとすべての画面を作り直すことになるため、画面の土台と同時に入れる。
   PRD ref: `prd.md > The Core Journey`（1, 3, 4）, `prd.md > 予算`, `prd.md > ミッションとその pt`, `prd.md > States and Boundaries`, `prd.md > Look and Feel`, `prd.md > 言語`
@@ -84,3 +84,7 @@ Activity mode:
 - 英語・日本語の多言語対応を追加（スライス 2 から辞書を通す）— 計画の承認時に、学習者が追加を決めた。
 - 機械的な確認から Playwright（E2E）を外し、静的解析とユニットテストに置き換えた。ルールを reducer と domain の純粋な関数に寄せた — 学習者の判断：E2E は今は不要で、ユニットテストしやすい粒度に分ける。
 - self-hosted runner の CI（formatter・linter・型検査・ユニットテスト）を追加し、スライスごとに push して緑を確かめる。runner は実装の前に aidd-infra が用意する（ARC の `arc-runner-acorn`。Node と uv はジョブ内で setup する。Docker は使えない）— 学習者の判断。
+- Expo を SDK 57 から 58（React Native 0.88、React 19.3）に変更 — `create-expo-app` の最新テンプレートが SDK 58 だった。学習者が選んだ Expo / React Native はそのまま。
+- 画面のファイルを `mobile/app/` ではなく `mobile/src/app/` に置き、Store は JSX を含むため `store.tsx` にした — SDK 58 のテンプレートと Expo Router の慣例に合わせた。spec の File Structure の `mobile/app/...` は `mobile/src/app/...` と読み替える。
+- `compose.yaml` の CORS の許可元を `ACORN_CORS_ORIGINS` で上書きできるようにした — この Mac では 8081 番が別のプロジェクトの開発サーバーに使われていたため、8082 番でも動かせるようにした。
+- スライス 2 のあとの確認で、学習者が次を決めた：日本語はひらがな表記をやめて普通の漢字かな交じりに。画面に「Jev」の名前を出さず「ポイントを決める」と言う。言語はアプリ内で切り替えず、最初の画面で選ぶ（端末の言語が初期値）。採点は別の画面に移らず、ボタンが送信中になり、失敗はトーストで出す（週の状態から「採点中」をなくした）。最初に名前を入れ、ホームであいさつする。🌰 の絵文字をやめ、ドット絵のどんぐりのロゴとアプリのアイコンを作る。prd.md と spec.md を合わせて更新した。

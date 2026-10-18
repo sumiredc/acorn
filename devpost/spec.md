@@ -22,7 +22,7 @@ PRD ref: `prd.md > The Core Journey`
 1. **初めて開く** → アプリが保存データを読む → 予算がない → 準備フローの予算ステップ → 入力した予算をアプリが保存する。
 2. **報酬を登録する** → アプリが `POST /judge/reward`（報酬名 + 予算）を送る → サーバーが Jev に価格帯と期間を Choice で聞く → コードが pt を計算 → アプリが報酬（pt・分布つき）を保存し、ショップに表示する。
 3. **今週のミッションを決める** → アプリの中だけで完結する（件数の制限チェック、先週分の引き継ぎ）。
-4. **採点する** → アプリが `POST /judge/missions`（全ミッション + 予算）を送る → サーバーがミッションごとに Jev の Score の質問を 1 回のリクエストにまとめて聞く → 段階ごとの倍率で pt を計算 → アプリが保存し、週を「進行中」にする。失敗したら週は「採点中」のまま、エラーと再試行ボタンを出す。
+4. **ポイントを決める**（ミッションの画面のボタン。送信中は押せない）→ アプリが `POST /judge/missions`（全ミッション + 予算）を送る → サーバーがミッションごとに Jev の Score の質問を 1 回のリクエストにまとめて聞く → 段階ごとの倍率で pt を計算 → アプリが保存し、週を「進行中」にする。失敗したら週は準備中のまま、トーストでエラーを出す。もう一度ボタンを押せば再試行になる。
 5. **クリアする** → アプリがクリアの記録（日付・pt・時刻）を保存する → 残高は記録から計算し直す。30 分以内で、残高が足りれば取り消せる。
 6. **交換する** → アプリが残高を確かめ、報酬を「交換済み」にする → 残高が減る。
 7. **次の週** → 起動時や時間操作のあと、アプリが「今のアプリ時刻の月曜」と保存した週の月曜を比べる → 違えば新しい週を作り、準備フローへ戻る（残高はそのまま）。
@@ -37,7 +37,7 @@ PRD ref: `prd.md > The Core Journey`
 | Jev の呼び出し | `typesafe-sdk`（Python）、`AsyncTypeSafeClient` | 学習者の判断：TypeSafe の API を直接呼ぶ |
 | モデル | `jev-1.13.0`（固定） | 最新の安定版。`jev-latest` も現在はこれを指すが、勝手に変わらないようにバージョンを固定する |
 | 実行 | Docker（API サーバー） | 学習者の判断 |
-| 多言語 | `expo-localization`（端末の言語）+ 自前の型付き辞書（`src/i18n/`） | 学習者の判断：端末の設定とアプリ内の切り替え。辞書を型で縛り、英日でキーの漏れがあれば tsc で落とす |
+| 多言語 | `expo-localization`（端末の言語）+ 自前の型付き辞書（`src/i18n/`） | 学習者の判断：最初の画面で選ぶ（端末の言語が初期値）。辞書を型で縛り、英日でキーの漏れがあれば tsc で落とす |
 | テスト | ユニットテストのみ。アプリ：Jest（`jest-expo`）+ tsc、API：pytest | 学習者の判断：E2E は今は不要。ユニットテストしやすい粒度に分ける（`Testability`） |
 | 静的解析 | API：ruff（format + lint）、mypy。アプリ：Prettier、ESLint（`eslint-config-expo`）、tsc | 学習者の判断：formatter と linter を CI に入れる |
 | CI | GitHub Actions、self-hosted runner（k8s 上の ARC、scale set `arc-runner-acorn`）。リポジトリは提出まで private | 学習者の判断。runner は aidd-infra が用意（sumiredc/aidd-infra#453） |
@@ -85,7 +85,8 @@ PRD ref: `prd.md > The Core Journey`
 - **ウィンドウ**：RPG のメッセージ窓のような、太い枠線（3px）と角丸（8px）の箱。画面の要素は基本的にこの窓に入れる。
 - **ステータス画面**：Jev の判定は、上位 3 つの候補を「区分名・%・横棒」で並べ、選ばれたものを強調する。confidence を小さく添える。
 - **ボタン**：押せるものの前に「▶」を付ける。押せない状態ははっきり薄くする。
-- **文言**：短くゲームっぽく（例：「ミッション クリア！」「pt が たりない！」）。参考作品の雰囲気から考えた案で、ビルド中に調整してよい。
+- **文言**：短くゲームっぽく。日本語は普通の漢字かな交じり（例：「ミッションクリア！」「pt が足りません」）。画面に「Jev」の名前は出さない。
+- **ロゴ**：12×12 のドット絵のどんぐり（`mobile/src/ui/logoPixels.ts`）。画面では `Logo.tsx` が View の格子で描き、アプリのアイコンは `mobile/scripts/make-icons.py` が同じデータから PNG にする。絵文字は使わない。
 - **レイアウト**：モバイル幅（最大 430px 程度）。Web では中央に寄せる。
 
 ## Components
@@ -104,7 +105,7 @@ PRD ref: `prd.md > States and Boundaries`（ずっと残るもの）
   PRD ref: `prd.md > クリアと取り消し`
 - `balance.ts`：残高 = クリアの記録の pt の合計 − 交換済みの報酬の pt の合計。交換できるかの判定。
   PRD ref: `prd.md > 報酬とその価格（ショップ）`
-- `setup.ts`：準備フローの次のステップを決める（予算がない → 予算、交換前の報酬が 0 件 → 報酬、週が準備中 → ミッション、採点中 → 採点）。
+- `setup.ts`：準備フローの次のステップを決める（言語が未選択 → 言語、名前がない → 名前、予算がない → 予算、交換前の報酬が 0 件 → 報酬、週が準備中 → ミッション）。
   PRD ref: `prd.md > Screens and Layout`（週の準備フロー）, `prd.md > 予算`
 
 ### Store の更新（reducer）
@@ -112,7 +113,7 @@ PRD ref: `prd.md > States and Boundaries`（ずっと残るもの）
 PRD ref: `prd.md > Features and Behavior` 全体
 
 ### I18n
-`mobile/src/i18n/`。`en.ts` と `ja.ts` に同じ形の辞書を置き、`ja.ts` は `en.ts` の型に合わせる（キーが欠けると tsc が落ちる）。`t(key, params)` で引く。言語は `data.locale`（`"en" | "ja" | null`、null は端末の設定に従う）と `expo-localization` から決める。Jev の区分は、言語によらないキー（下の `Judgement Keys`）で受け取り、表示するときに辞書で区分名にする。
+`mobile/src/i18n/`。`en.ts` と `ja.ts` に同じ形の辞書を置き、`ja.ts` は `en.ts` の型に合わせる（キーが欠けると tsc が落ちる）。`t(key, params)` で引く。言語は `data.locale`（`"en" | "ja" | null`、null は未選択で、そのあいだは端末の設定で表示する）と `expo-localization` から決める。Jev の区分は、言語によらないキー（下の `Judgement Keys`）で受け取り、表示するときに辞書で区分名にする。
 PRD ref: `prd.md > 言語`
 
 ### API Client
@@ -120,7 +121,7 @@ PRD ref: `prd.md > 言語`
 
 ### Screens
 Expo Router のファイル。
-- `mobile/app/setup.tsx`：週の準備フロー。予算 → 報酬 → ミッション（引き継ぎのチェックボックス付き）→ 採点（読み込み中 / ステータス画面 / エラーと再試行）。PRD ref: `prd.md > 予算`, `prd.md > ミッションとその pt`
+- `mobile/app/setup.tsx`：週の準備フロー。言語 → 名前 → 予算 → 報酬 → ミッション（引き継ぎのチェックボックス付き。「ポイントを決める」で送信中になり、失敗はトースト）。PRD ref: `prd.md > 予算`, `prd.md > ミッションとその pt`
 - `mobile/app/index.tsx`：ホーム。残高、タイムライン、今週のミッションとクリア / 取り消しボタン。準備が終わっていなければ `setup` へ移る。PRD ref: `prd.md > ホームのタイムライン`, `prd.md > クリアと取り消し`
 - `mobile/app/shop.tsx`：ショップ。報酬の一覧（価格・分布・交換 / 交換済み）と、報酬の追加（最大 5 件、交換済みは数えない）。PRD ref: `prd.md > 報酬とその価格（ショップ）`
 - `mobile/app/_layout.tsx`：フォントの読み込み、ホームとショップの切り替え、画面下のデモ用の時間操作、トースト。
@@ -182,13 +183,14 @@ AsyncStorage のキー `acorn:v1` に、次の形の JSON を 1 つ保存する�
 ```ts
 type AcornData = {
   version: 1;
+  userName: string | null;           // ホームのあいさつに使う名前
   budgetUsd: number | null;          // 予算。未設定なら null
   clockOffsetMs: number;             // デモ用の時間操作で進めた分
   rewards: Reward[];
   week: Week | null;                 // 今週
   previousMissions: Mission[];       // 先週のミッション（引き継ぎ用）
   clears: Clear[];                   // 全期間のクリアの記録
-  locale: "en" | "ja" | null;        // 表示言語。null は端末の設定に従う
+  locale: "en" | "ja" | null;        // 表示言語。null は未選択（端末の設定で表示）
 };
 type Judgement = { choice: string; probabilities: Record<string, number>; confidence: number };
 type Reward = { id: string; name: string; pt: number; mode: "price" | "period";
@@ -196,7 +198,7 @@ type Reward = { id: string; name: string; pt: number; mode: "price" | "period";
 type Mission = { id: string; name: string; kind: "daily" | "weekly";
   pt: number | null; judgement: Judgement | null };   // 採点前は null
 type Week = { weekStart: string;     // 月曜の日付 "YYYY-MM-DD"
-  status: "setup" | "scoring" | "active"; missions: Mission[] };
+  status: "setup" | "active"; missions: Mission[] };
 type Clear = { id: string; missionId: string; weekStart: string; date: string;
   pt: number; clearedAt: number };   // clearedAt はアプリ時刻
 ```
@@ -280,7 +282,7 @@ bwai/
 - 失敗：Jev の呼び出しに失敗したら `502 { detail: "jev_failed" }`。文言はアプリの辞書で出す。
 
 ## Important Failure Modes
-- **Jev の呼び出しの失敗、または API サーバーが起動していない** → 採点のステップや報酬の追加で、エラーと「▶ もう一度」ボタンを出す。週は「採点中」のままで、クリアできない（`prd.md > States and Boundaries`）。
+- **Jev の呼び出しの失敗、または API サーバーが起動していない** → ミッションや報酬の画面で、トーストでエラーを出す。ボタンをもう一度押せば再試行になる。週は準備中のままで、クリアできない（`prd.md > States and Boundaries`）。
 - **Jev が日本語の名前を苦手としている**（未確認） → ビルドの最初に実際の名前で試す。判定がおかしければ、state に kind や短い英語の説明を添えるなど、質問の書き方を調整する。
 - **残高不足での交換がすり抜けた**（二重タップなど） → 保存の直前にもう一度 `balance.ts` で確かめ、足りなければトースト「pt が たりない！」を出して何も変えない。
 

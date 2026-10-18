@@ -30,7 +30,7 @@ export type Mission = {
 export type Week = {
   // Monday of the week, local time, "YYYY-MM-DD".
   weekStart: string;
-  status: 'setup' | 'scoring' | 'active';
+  status: 'setup' | 'active';
   missions: Mission[];
 };
 
@@ -46,18 +46,20 @@ export type Clear = {
 
 export type AcornData = {
   version: 1;
+  userName: string | null;
   budgetUsd: number | null;
   clockOffsetMs: number;
   rewards: Reward[];
   week: Week | null;
   previousMissions: Mission[];
   clears: Clear[];
-  // null follows the device language.
+  // null until chosen on the first screen; the device language is shown until then.
   locale: Locale | null;
 };
 
 export const initialData: AcornData = {
   version: 1,
+  userName: null,
   budgetUsd: null,
   clockOffsetMs: 0,
   rewards: [],

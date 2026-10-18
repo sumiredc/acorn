@@ -7,7 +7,7 @@ describe('resolveLocale', () => {
     expect(resolveLocale(null, null)).toBe('en');
   });
 
-  it('prefers the in-app choice over the device', () => {
+  it('prefers the chosen language over the device', () => {
     expect(resolveLocale('en', 'ja')).toBe('en');
     expect(resolveLocale('ja', 'en')).toBe('ja');
   });
@@ -19,7 +19,7 @@ describe('translate', () => {
   });
 
   it('has Japanese for Jev categories', () => {
-    expect(translate('ja', 'level_4')).toBe('とても むずかしい');
+    expect(translate('ja', 'level_4')).toBe('とても難しい');
   });
 });
 

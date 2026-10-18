@@ -41,43 +41,37 @@ describe('reduce', () => {
     expect(data.week!.missions).toEqual([]);
   });
 
-  it('cannot submit an empty week', () => {
-    expect(run([{ type: 'submitMissions' }]).week!.status).toBe('setup');
-  });
-
-  it('locks missions while scoring', () => {
-    const data = run([
-      { type: 'addMission', id: 'a', name: 'A', kind: 'daily' },
-      { type: 'submitMissions' },
-      { type: 'addMission', id: 'b', name: 'B', kind: 'daily' },
-      { type: 'removeMission', id: 'a' },
-    ]);
-    expect(data.week!.status).toBe('scoring');
-    expect(data.week!.missions.map((m) => m.id)).toEqual(['a']);
+  it('stores a trimmed name and ignores a blank one', () => {
+    expect(run([{ type: 'setUserName', name: '  Sumire ' }]).userName).toBe('Sumire');
+    expect(run([{ type: 'setUserName', name: '   ' }]).userName).toBeNull();
   });
 
   it('activates the week once every mission is scored', () => {
     const data = run([
       { type: 'addMission', id: 'a', name: 'A', kind: 'daily' },
-      { type: 'submitMissions' },
       { type: 'missionsScored', results: [{ id: 'a', pt: 4, judgement }] },
+      { type: 'addMission', id: 'b', name: 'B', kind: 'daily' },
     ]);
     expect(data.week!.status).toBe('active');
+    expect(data.week!.missions).toHaveLength(1);
     expect(data.week!.missions[0]).toMatchObject({ pt: 4, judgement });
   });
 
-  it('stays scoring when a result is missing', () => {
+  it('ignores scores for an empty week', () => {
+    expect(run([{ type: 'missionsScored', results: [] }]).week!.status).toBe('setup');
+  });
+
+  it('stays in setup when a result is missing', () => {
     const data = run([
       { type: 'addMission', id: 'a', name: 'A', kind: 'daily' },
       { type: 'addMission', id: 'b', name: 'B', kind: 'daily' },
-      { type: 'submitMissions' },
       { type: 'missionsScored', results: [{ id: 'a', pt: 4, judgement }] },
     ]);
-    expect(data.week!.status).toBe('scoring');
+    expect(data.week!.status).toBe('setup');
+    expect(data.week!.missions.every((m) => m.pt === null)).toBe(true);
   });
 
   it('stores the chosen language', () => {
     expect(run([{ type: 'setLocale', locale: 'ja' }]).locale).toBe('ja');
-    expect(run([{ type: 'setLocale', locale: null }]).locale).toBeNull();
   });
 });

@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 
 import { StoreProvider } from '@/storage/store';
 import { colors } from '@/ui/theme';
+import { ToastProvider } from '@/ui/Toast';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -19,9 +20,14 @@ export default function RootLayout() {
 
   return (
     <StoreProvider>
-      <Stack
-        screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}
-      />
+      <ToastProvider>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: colors.background },
+          }}
+        />
+      </ToastProvider>
     </StoreProvider>
   );
 }

@@ -15,6 +15,7 @@ export default function HomeScreen() {
 
   return (
     <Screen title={t('home.title')}>
+      <PixelText style={styles.greeting}>{t('home.greeting', { name: data.userName! })}</PixelText>
       <PixelText style={styles.section}>{t('home.missions')}</PixelText>
       {data.week!.missions.map((m) => (
         <Window key={m.id}>
@@ -32,6 +33,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  greeting: { fontSize: 17 },
   section: { fontSize: 15, color: colors.muted },
   header: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
   name: { flex: 1 },

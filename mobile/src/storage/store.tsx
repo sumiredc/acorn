@@ -14,6 +14,7 @@ import { appNow } from '@/domain/clock';
 import { type AcornData, initialData, type Locale } from '@/domain/types';
 import { type MessageKey, resolveLocale, translate } from '@/i18n';
 
+import { parseSaved } from './persist';
 import { type Action, reduce } from './reducer';
 
 const STORAGE_KEY = 'acorn:v1';
@@ -33,7 +34,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY)
-      .then((raw) => (raw ? (JSON.parse(raw) as AcornData) : initialData))
+      .then(parseSaved)
       .catch(() => initialData)
       .then((loaded) =>
         setData(reduce(loaded, { type: 'tick' }, appNow(Date.now(), loaded.clockOffsetMs))),

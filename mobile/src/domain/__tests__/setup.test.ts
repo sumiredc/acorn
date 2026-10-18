@@ -1,29 +1,28 @@
 import { nextSetupStep } from '../setup';
 import { type AcornData, initialData } from '../types';
 
-const week = (status: 'setup' | 'scoring' | 'active') => ({
-  weekStart: '2026-10-19',
-  status,
-  missions: [],
-});
+const week = (status: 'setup' | 'active') => ({ weekStart: '2026-10-19', status, missions: [] });
+const ready: AcornData = { ...initialData, locale: 'ja', userName: 'Sumire', budgetUsd: 500 };
 
 describe('nextSetupStep', () => {
-  it('asks for the budget first', () => {
-    expect(nextSetupStep(initialData)).toBe('budget');
+  it('asks for the language first', () => {
+    expect(nextSetupStep(initialData)).toBe('language');
   });
 
-  it('skips the budget once it is set', () => {
-    const data: AcornData = { ...initialData, budgetUsd: 500, week: week('setup') };
-    expect(nextSetupStep(data)).toBe('missions');
+  it('asks for the name after the language', () => {
+    expect(nextSetupStep({ ...initialData, locale: 'en' })).toBe('name');
   });
 
-  it('stays on scoring until Jev has answered', () => {
-    const data: AcornData = { ...initialData, budgetUsd: 500, week: week('scoring') };
-    expect(nextSetupStep(data)).toBe('scoring');
+  it('asks for the budget after the name', () => {
+    expect(nextSetupStep({ ...ready, budgetUsd: null })).toBe('budget');
+  });
+
+  it('asks for missions until the week is active', () => {
+    expect(nextSetupStep(ready)).toBe('missions');
+    expect(nextSetupStep({ ...ready, week: week('setup') })).toBe('missions');
   });
 
   it('is done when the week is active', () => {
-    const data: AcornData = { ...initialData, budgetUsd: 500, week: week('active') };
-    expect(nextSetupStep(data)).toBeNull();
+    expect(nextSetupStep({ ...ready, week: week('active') })).toBeNull();
   });
 });

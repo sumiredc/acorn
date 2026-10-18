@@ -1,15 +1,22 @@
 import { Redirect } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { type ApiError, apiClient } from '@/api/client';
+import { apiClient } from '@/api/client';
 import { nextSetupStep } from '@/domain/setup';
-import type { MissionKind } from '@/domain/types';
+import type { Locale, MissionKind } from '@/domain/types';
 import { canAddMission, canFinishMissions } from '@/domain/week';
 import { useAcorn } from '@/storage/store';
 import { ActionButton, ErrorText, Field, PixelText, Window } from '@/ui/primitives';
 import { Screen } from '@/ui/Screen';
 import { colors } from '@/ui/theme';
+import { useToast } from '@/ui/Toast';
+
+// Language names stay in their own language so either reader can find theirs.
+const LANGUAGES: { locale: Locale; label: string }[] = [
+  { locale: 'en', label: 'English' },
+  { locale: 'ja', label: '日本語' },
+];
 
 function newId(): string {
   return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
@@ -23,10 +30,57 @@ export default function SetupScreen() {
 
   return (
     <Screen title={t('setup.title')}>
+      {step === 'language' && <LanguageStep />}
+      {step === 'name' && <NameStep />}
       {step === 'budget' && <BudgetStep />}
       {step === 'missions' && <MissionsStep />}
-      {step === 'scoring' && <ScoringStep />}
     </Screen>
+  );
+}
+
+function LanguageStep() {
+  const { locale, dispatch, t } = useAcorn();
+  const [choice, setChoice] = useState<Locale>(locale);
+
+  return (
+    <Window title={t('setup.language.title')}>
+      <PixelText style={styles.help}>{t('setup.language.help')}</PixelText>
+      <View style={styles.inline}>
+        {LANGUAGES.map((l) => (
+          <ActionButton
+            key={l.locale}
+            tone={choice === l.locale ? 'acorn' : 'plain'}
+            label={l.label}
+            onPress={() => setChoice(l.locale)}
+          />
+        ))}
+      </View>
+      <ActionButton
+        label={t('common.next')}
+        onPress={() => dispatch({ type: 'setLocale', locale: choice })}
+      />
+    </Window>
+  );
+}
+
+function NameStep() {
+  const { dispatch, t } = useAcorn();
+  const [name, setName] = useState('');
+  const submit = () => name.trim() && dispatch({ type: 'setUserName', name });
+
+  return (
+    <Window title={t('setup.name.title')}>
+      <PixelText style={styles.help}>{t('setup.name.help')}</PixelText>
+      <Field
+        value={name}
+        onChangeText={setName}
+        onSubmitEditing={submit}
+        maxLength={20}
+        placeholder={t('setup.name.placeholder')}
+        accessibilityLabel={t('setup.name.title')}
+      />
+      <ActionButton label={t('common.next')} disabled={!name.trim()} onPress={submit} />
+    </Window>
   );
 }
 
@@ -52,7 +106,7 @@ function BudgetStep() {
       </View>
       {value.trim() !== '' && !valid && <ErrorText>{t('setup.budget.invalid')}</ErrorText>}
       <ActionButton
-        label={t('setup.budget.next')}
+        label={t('common.next')}
         disabled={!valid}
         onPress={() => dispatch({ type: 'setBudget', budgetUsd: amount })}
       />
@@ -62,10 +116,23 @@ function BudgetStep() {
 
 function MissionsStep() {
   const { data, dispatch, t } = useAcorn();
+  const showToast = useToast();
   const missions = data.week?.missions ?? [];
   const [name, setName] = useState('');
   const [kind, setKind] = useState<MissionKind>('daily');
-  const canAdd = canAddMission(missions, kind);
+  const [sending, setSending] = useState(false);
+  const canAdd = !sending && canAddMission(missions, kind);
+
+  async function score() {
+    setSending(true);
+    const result = await apiClient.judgeMissions(
+      data.budgetUsd!,
+      missions.map((m) => ({ id: m.id, name: m.name, kind: m.kind })),
+    );
+    setSending(false);
+    if (result.ok) dispatch({ type: 'missionsScored', results: result.data });
+    else showToast(t(`error.${result.error}`));
+  }
 
   function add() {
     dispatch({ type: 'addMission', id: newId(), name, kind });
@@ -83,6 +150,7 @@ function MissionsStep() {
           <ActionButton
             tone="plain"
             label={t('setup.missions.remove')}
+            disabled={sending}
             onPress={() => dispatch({ type: 'removeMission', id: m.id })}
           />
         </View>
@@ -116,60 +184,10 @@ function MissionsStep() {
       />
       <View style={styles.divider} />
       <ActionButton
-        label={t('setup.missions.done')}
-        disabled={!canFinishMissions(missions)}
-        onPress={() => dispatch({ type: 'submitMissions' })}
+        label={t(sending ? 'setup.missions.sending' : 'setup.missions.done')}
+        disabled={sending || !canFinishMissions(missions)}
+        onPress={score}
       />
-    </Window>
-  );
-}
-
-function ScoringStep() {
-  const { data, dispatch, t } = useAcorn();
-  const [error, setError] = useState<ApiError | null>(null);
-  const [attempt, setAttempt] = useState(0);
-  const budgetUsd = data.budgetUsd!;
-  const missions = data.week!.missions;
-
-  useEffect(() => {
-    // Ignore a late answer after unmount, so a double-mounted effect cannot dispatch twice.
-    let cancelled = false;
-    apiClient
-      .judgeMissions(
-        budgetUsd,
-        missions.map(({ id, name, kind }) => ({ id, name, kind })),
-      )
-      .then((result) => {
-        if (cancelled) return;
-        if (result.ok) dispatch({ type: 'missionsScored', results: result.data });
-        else setError(result.error);
-      });
-    return () => {
-      cancelled = true;
-    };
-    // Missions are locked while scoring; re-run only on an explicit retry.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [attempt]);
-
-  return (
-    <Window title={t('setup.scoring.title')}>
-      {missions.map((m) => (
-        <PixelText key={m.id} style={styles.help}>
-          [{t(`kind.${m.kind}`)}] {m.name}
-        </PixelText>
-      ))}
-      {error && (
-        <>
-          <ErrorText>{t(`error.${error}`)}</ErrorText>
-          <ActionButton
-            label={t('setup.scoring.retry')}
-            onPress={() => {
-              setError(null);
-              setAttempt((n) => n + 1);
-            }}
-          />
-        </>
-      )}
     </Window>
   );
 }

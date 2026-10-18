@@ -5,12 +5,12 @@ export type ScoredMission = { id: string; pt: number; judgement: Judgement };
 
 export type Action =
   | { type: 'tick' }
+  | { type: 'setUserName'; name: string }
   | { type: 'setBudget'; budgetUsd: number }
   | { type: 'addMission'; id: string; name: string; kind: MissionKind }
   | { type: 'removeMission'; id: string }
-  | { type: 'submitMissions' }
   | { type: 'missionsScored'; results: ScoredMission[] }
-  | { type: 'setLocale'; locale: Locale | null };
+  | { type: 'setLocale'; locale: Locale };
 
 // Every change to saved data goes through here. Invalid actions return the data unchanged.
 export function reduce(data: AcornData, action: Action, now: number): AcornData {
@@ -20,6 +20,12 @@ export function reduce(data: AcornData, action: Action, now: number): AcornData 
   switch (action.type) {
     case 'tick':
       return current;
+
+    case 'setUserName': {
+      const name = action.name.trim();
+      if (!name) return current;
+      return { ...current, userName: name };
+    }
 
     case 'setBudget':
       if (!(action.budgetUsd > 0)) return current;
@@ -41,12 +47,8 @@ export function reduce(data: AcornData, action: Action, now: number): AcornData 
         week: { ...week, missions: week.missions.filter((m) => m.id !== action.id) },
       };
 
-    case 'submitMissions':
-      if (week.status !== 'setup' || !canFinishMissions(week.missions)) return current;
-      return { ...current, week: { ...week, status: 'scoring' } };
-
     case 'missionsScored': {
-      if (week.status !== 'scoring') return current;
+      if (week.status !== 'setup' || !canFinishMissions(week.missions)) return current;
       const byId = new Map(action.results.map((r) => [r.id, r]));
       if (week.missions.some((m) => !byId.has(m.id))) return current;
       const missions = week.missions.map((m) => {
