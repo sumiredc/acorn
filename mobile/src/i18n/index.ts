@@ -19,8 +19,14 @@ export function translate(
   key: MessageKey,
   params: Record<string, string | number> = {},
 ): string {
-  return dictionaries[locale][key].replace(/\{(\w+)\}/g, (match, name: string) =>
-    name in params ? String(params[name]) : match,
+  // `{name}` fills a parameter; `{name:one|other}` picks a word by whether it is 1.
+  return dictionaries[locale][key].replace(
+    /\{(\w+)(?::([^|}]*)\|([^}]*))?\}/g,
+    (match, name: string, one?: string, other?: string) => {
+      if (!(name in params)) return match;
+      if (one === undefined) return String(params[name]);
+      return Number(params[name]) === 1 ? one : other!;
+    },
   );
 }
 

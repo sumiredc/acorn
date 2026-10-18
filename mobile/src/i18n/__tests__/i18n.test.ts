@@ -21,6 +21,18 @@ describe('translate', () => {
   it('has Japanese for Jev categories', () => {
     expect(translate('ja', 'level_4')).toBe('とても難しい');
   });
+
+  it('uses the singular in English when the number is 1', () => {
+    expect(translate('en', 'goal.count', { target: 1 })).toBe('1 time');
+    expect(translate('en', 'goal.count', { target: 20 })).toBe('20 times');
+    expect(translate('en', 'progress.count', { value: 0, target: 1 })).toBe('0 / 1 time');
+    expect(translate('en', 'acorns.count', { count: 1 })).toBe('1 acorn');
+    expect(translate('en', 'acorns.count', { count: 0 })).toBe('0 acorns');
+    expect(translate('en', 'home.undoToast', { pt: 1 })).toBe('Undone. -1 acorn');
+    expect(translate('en', 'shop.redeemConfirm', { name: 'Tea', pt: 1 })).toBe(
+      'Redeem "Tea" for 1 acorn?',
+    );
+  });
 });
 
 describe('isMessageKey', () => {
