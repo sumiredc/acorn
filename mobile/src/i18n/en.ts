@@ -23,6 +23,8 @@ export const en = {
   'setup.missions.add': 'Add',
   'setup.missions.remove': 'Remove',
   'setup.missions.removeConfirm': 'Remove "{name}"?',
+  'setup.carry.title': "Last week's missions",
+  'setup.carry.add': 'Carry over',
   'setup.missions.done': 'Register',
   'setup.missions.sending': 'Registering…',
 
@@ -78,6 +80,7 @@ export const en = {
   'home.undoRefused': 'This clear can no longer be undone.',
   'demo.label': 'Demo',
   'demo.advanceDay': 'Next day',
+  'demo.advanceWeek': 'Next week',
   'day.0': 'Mon',
   'day.1': 'Tue',
   'day.2': 'Wed',

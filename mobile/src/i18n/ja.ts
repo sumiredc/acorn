@@ -25,6 +25,8 @@ export const ja: Dictionary = {
   'setup.missions.add': '追加',
   'setup.missions.remove': '削除',
   'setup.missions.removeConfirm': '「{name}」を削除しますか？',
+  'setup.carry.title': '先週のミッション',
+  'setup.carry.add': '引き継ぐ',
   'setup.missions.done': '登録',
   'setup.missions.sending': '登録しています…',
 
@@ -80,6 +82,7 @@ export const ja: Dictionary = {
   'home.undoRefused': 'このクリアはもう取り消せません。',
   'demo.label': 'デモ用',
   'demo.advanceDay': '日を進める',
+  'demo.advanceWeek': '週を進める',
   'day.0': '月',
   'day.1': '火',
   'day.2': '水',

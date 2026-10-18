@@ -54,11 +54,15 @@ export default function HomeScreen() {
   // Real time as state, refreshed by the timers below. Reading Date.now() during render
   // would not refresh the screen, because the React Compiler memoizes the render.
   const [realNow, setRealNow] = useState(() => Date.now());
-  // Every minute, so the time left stays current.
+  // Every minute, so the time left stays current; the tick also starts a new week if Monday
+  // arrives while the app is open.
   useEffect(() => {
-    const timer = setInterval(() => setRealNow(Date.now()), 60 * 1000);
+    const timer = setInterval(() => {
+      setRealNow(Date.now());
+      dispatch({ type: 'tick' });
+    }, 60 * 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [dispatch]);
   // And right when an undo window closes, so its button disappears on time.
   useEffect(() => {
     const deadline = nextUndoDeadline(data.clears, now());

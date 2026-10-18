@@ -2,7 +2,14 @@ import { canRecord, canUndo } from '@/domain/clears';
 import { canAddReward, canRedeem } from '@/domain/rewards';
 import { dateKey, DAY_MS } from '@/domain/clock';
 import { clampProgress, progressKey } from '@/domain/progress';
-import { canAddMission, canFinishMissions, ensureWeek, missionTarget } from '@/domain/week';
+import {
+  canAddMission,
+  canFinishMissions,
+  carryableMissions,
+  ensureWeek,
+  missionTarget,
+  untilNextMonday,
+} from '@/domain/week';
 import type {
   AcornData,
   Judgement,
@@ -27,6 +34,8 @@ export type Action =
       target: number;
     }
   | { type: 'removeMission'; id: string }
+  // Adds one of last week's missions to this week, unscored and with no progress.
+  | { type: 'carryOverMission'; fromId: string; id: string }
   | { type: 'missionsScored'; results: ScoredMission[] }
   // Reaching the goal clears the mission, under `clearId`.
   | { type: 'recordProgress'; missionId: string; value: number; clearId: string }
@@ -41,6 +50,7 @@ export type Action =
     }
   | { type: 'redeemReward'; id: string }
   | { type: 'advanceDay' }
+  | { type: 'advanceWeek' }
   | { type: 'setLocale'; locale: Locale };
 
 // Every change to saved data goes through here. Invalid actions return the data unchanged.
@@ -78,6 +88,16 @@ export function reduce(data: AcornData, action: Action, now: number): AcornData 
         ...current,
         week: { ...week, missions: week.missions.filter((m) => m.id !== action.id) },
       };
+
+    case 'carryOverMission': {
+      if (week.status !== 'setup') return current;
+      const from = carryableMissions(current.previousMissions, week.missions).find(
+        (m) => m.id === action.fromId,
+      );
+      if (!from || !canAddMission(week.missions, from.kind)) return current;
+      const mission = { ...from, id: action.id, pt: null, judgement: null };
+      return { ...current, week: { ...week, missions: [...week.missions, mission] } };
+    }
 
     case 'missionsScored': {
       if (week.status !== 'setup' || !canFinishMissions(week.missions)) return current;
@@ -139,8 +159,17 @@ export function reduce(data: AcornData, action: Action, now: number): AcornData 
       return { ...current, rewards };
     }
 
+    // Moving the clock can cross into a new week, so check the week at the new time.
     case 'advanceDay':
-      return { ...current, clockOffsetMs: current.clockOffsetMs + DAY_MS };
+      return ensureWeek(
+        { ...current, clockOffsetMs: current.clockOffsetMs + DAY_MS },
+        now + DAY_MS,
+      );
+
+    case 'advanceWeek': {
+      const delta = untilNextMonday(now);
+      return ensureWeek({ ...current, clockOffsetMs: current.clockOffsetMs + delta }, now + delta);
+    }
 
     case 'setLocale':
       return { ...current, locale: action.locale };

@@ -5,7 +5,7 @@ import { useAcorn } from '@/storage/store';
 import { ActionButton, PixelText } from './primitives';
 import { colors } from './theme';
 
-// Moves app time forward so a demo can show several days in a few minutes.
+// Moves app time forward so a demo can show several days, or a new week, in a few minutes.
 export function DemoClock() {
   const { dispatch, t } = useAcorn();
   return (
@@ -15,6 +15,11 @@ export function DemoClock() {
         tone="plain"
         label={t('demo.advanceDay')}
         onPress={() => dispatch({ type: 'advanceDay' })}
+      />
+      <ActionButton
+        tone="plain"
+        label={t('demo.advanceWeek')}
+        onPress={() => dispatch({ type: 'advanceWeek' })}
       />
     </View>
   );

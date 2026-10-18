@@ -6,7 +6,7 @@ import { apiClient } from '@/api/client';
 import { availableRewards, canAddReward } from '@/domain/rewards';
 import { nextSetupStep } from '@/domain/setup';
 import type { Locale, Mission, MissionKind } from '@/domain/types';
-import { canFinishMissions, missionSlots } from '@/domain/week';
+import { canAddMission, canFinishMissions, carryableMissions, missionSlots } from '@/domain/week';
 import { newId } from '@/storage/id';
 import { useAcorn } from '@/storage/store';
 import { AcornAmount } from '@/ui/AcornAmount';
@@ -15,6 +15,7 @@ import { ConfirmModal } from '@/ui/ConfirmModal';
 import { IconButton } from '@/ui/IconButton';
 import { goalLabel } from '@/ui/missionText';
 import { MissionModal, type NewMission } from '@/ui/MissionModal';
+import { PixelIcon } from '@/ui/PixelIcon';
 import { ActionButton, Choice, ErrorText, Field, PixelText, Window } from '@/ui/primitives';
 import { Screen } from '@/ui/Screen';
 import { colors } from '@/ui/theme';
@@ -196,8 +197,39 @@ function MissionsStep() {
     setAdding(null);
   }
 
+  const carryable = carryableMissions(data.previousMissions, missions);
+
   return (
     <>
+      {carryable.length > 0 && (
+        <Window title={t('setup.carry.title')}>
+          {carryable.map((mission) => (
+            <View key={mission.id} style={styles.slot}>
+              <PixelIcon
+                name={mission.kind}
+                size={14}
+                color={colors.acorn}
+                label={t(`kind.${mission.kind}`)}
+              />
+              <PixelText style={styles.grow}>
+                {mission.name}
+                {mission.unit !== 'percent' && (
+                  <PixelText style={styles.goal}> {goalLabel(mission, t)}</PixelText>
+                )}
+              </PixelText>
+              <ActionButton
+                tone="plain"
+                style={styles.carry}
+                label={t('setup.carry.add')}
+                disabled={sending || !canAddMission(missions, mission.kind)}
+                onPress={() =>
+                  dispatch({ type: 'carryOverMission', fromId: mission.id, id: newId() })
+                }
+              />
+            </View>
+          ))}
+        </Window>
+      )}
       <Window title={t('setup.missions.title')}>
         {KINDS.map((kind) => (
           <View key={kind} style={styles.group}>
@@ -271,4 +303,5 @@ const styles = StyleSheet.create({
   emptyLabel: { color: colors.muted, fontSize: 14 },
   kind: { color: colors.acorn, fontSize: 13 },
   goal: { color: colors.sky },
+  carry: { alignSelf: 'center', paddingVertical: 4 },
 });

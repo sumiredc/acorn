@@ -1,4 +1,4 @@
-import { mondayKey } from './clock';
+import { DAY_MS, mondayKey } from './clock';
 import type { AcornData, Mission, MissionKind, MissionUnit, Week } from './types';
 
 export const MISSION_LIMITS: Record<MissionKind, number> = { daily: 3, weekly: 1 };
@@ -40,7 +40,31 @@ export function newWeek(now: number): Week {
   return { weekStart: mondayKey(now), status: 'setup', missions: [], progress: {} };
 }
 
+// Starts this week when the saved one is missing or from an earlier week. Last week's missions
+// are kept, unscored, to carry over; after a week with none, the older ones stay. Clears (and so
+// the balance) are never touched.
 export function ensureWeek(data: AcornData, now: number): AcornData {
-  if (data.week) return data;
-  return { ...data, week: newWeek(now) };
+  if (data.week?.weekStart === mondayKey(now)) return data;
+  const ended = data.week?.missions ?? [];
+  const previousMissions =
+    ended.length > 0
+      ? ended.map((m) => ({ ...m, pt: null, judgement: null }))
+      : data.previousMissions;
+  return { ...data, week: newWeek(now), previousMissions };
+}
+
+// The same mission as one already on this week's list, judged by what it asks for.
+function sameGoal(a: Mission, b: Mission): boolean {
+  return a.name === b.name && a.kind === b.kind && a.unit === b.unit && a.target === b.target;
+}
+
+// Last week's missions that aren't on this week's list yet.
+export function carryableMissions(previous: Mission[], current: Mission[]): Mission[] {
+  return previous.filter((p) => !current.some((c) => sameGoal(p, c)));
+}
+
+// How far to move the clock to reach next Monday at the same time of day.
+export function untilNextMonday(now: number): number {
+  const sinceMonday = (new Date(now).getDay() + 6) % 7;
+  return (7 - sinceMonday) * DAY_MS;
 }

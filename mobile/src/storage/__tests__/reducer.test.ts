@@ -262,3 +262,42 @@ describe('rewards', () => {
     expect(data.rewards.map((r) => r.status)).toEqual(['redeemed', 'available']);
   });
 });
+
+describe('week reset', () => {
+  const scoredWeek = run([
+    { type: 'addMission', id: 'd', name: 'Push-ups', kind: 'daily', unit: 'count', target: 20 },
+    { type: 'missionsScored', results: [{ id: 'd', pt: 4, judgement }] },
+    { type: 'recordProgress', missionId: 'd', value: 20, clearId: 'c' },
+  ]);
+
+  it('advances to next Monday and opens the new week for setup, keeping the balance', () => {
+    const next = run([{ type: 'advanceWeek' }], scoredWeek);
+    expect(new Date(NOW + next.clockOffsetMs)).toEqual(new Date(2026, 9, 26, 9));
+    expect(next.week).toMatchObject({ weekStart: '2026-10-26', status: 'setup', missions: [] });
+    expect(next.clears.map((c) => c.pt)).toEqual([4]);
+  });
+
+  it('switches weeks when a day advance crosses Sunday night', () => {
+    const sunday = new Date(2026, 9, 25, 9).getTime();
+    const next = reduce(scoredWeek, { type: 'advanceDay' }, sunday);
+    expect(next.week!.weekStart).toBe('2026-10-26');
+  });
+
+  it('switches weeks on the first action in a new week, such as opening the app', () => {
+    const nextMonday = new Date(2026, 9, 26, 8).getTime();
+    expect(reduce(scoredWeek, { type: 'tick' }, nextMonday).week!.status).toBe('setup');
+  });
+
+  it('carries a mission over unscored and with no progress, once', () => {
+    const next = run([{ type: 'advanceWeek' }], scoredWeek);
+    const later = NOW + next.clockOffsetMs;
+    const carried = [
+      { type: 'carryOverMission', fromId: 'd', id: 'd2' },
+      { type: 'carryOverMission', fromId: 'd', id: 'd3' },
+    ].reduce((data, action) => reduce(data, action as Action, later), next);
+    expect(carried.week!.missions).toEqual([
+      { ...scoredWeek.week!.missions[0], id: 'd2', pt: null, judgement: null },
+    ]);
+    expect(carried.week!.progress).toEqual({});
+  });
+});
