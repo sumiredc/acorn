@@ -62,7 +62,7 @@ Build mode: fast
 ## Hands-on Checkpoints
 
 - [x] Early usable behavior explored — スライス 2 のあと（ステータス画面の見た目と、Jev の採点の感触）。スライス 2・3 のあとに学習者が実際に触り、多くの変更を決めた（Revisions を参照）
-- [ ] Final kick-the-tires exploration and feedback completed
+- [x] Final kick-the-tires exploration and feedback completed
 
 ## Final Review
 
