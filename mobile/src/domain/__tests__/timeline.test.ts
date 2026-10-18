@@ -1,4 +1,4 @@
-import { timelineDays } from '../timeline';
+import { completesToday, timelineDays } from '../timeline';
 import type { Clear, Mission, Week } from '../types';
 
 const mission = (id: string, kind: Mission['kind']): Mission => ({
@@ -62,5 +62,21 @@ describe('timelineDays', () => {
   it('stays empty in a week without daily missions', () => {
     const weeklyOnly = { ...week, missions: [mission('w', 'weekly')] };
     expect(timelineDays(weeklyOnly, [], 0)[0]).toMatchObject({ cleared: 0, total: 0 });
+  });
+});
+
+describe('completesToday', () => {
+  const wednesday = new Date(2026, 9, 21, 9).getTime();
+
+  it('is true for the last daily mission left today', () => {
+    expect(completesToday(week, [clear('a', '2026-10-21')], mission('b', 'daily'), wednesday)).toBe(
+      true,
+    );
+  });
+
+  it('is false while other daily missions remain, or for a weekly one', () => {
+    expect(completesToday(week, [], mission('a', 'daily'), wednesday)).toBe(false);
+    const done = [clear('a', '2026-10-21')];
+    expect(completesToday(week, done, mission('w', 'weekly'), wednesday)).toBe(false);
   });
 });

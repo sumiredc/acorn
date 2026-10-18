@@ -6,10 +6,11 @@ import { canUndo, currentClear, nextUndoDeadline } from '@/domain/clears';
 import { appNow, remainingTime } from '@/domain/clock';
 import { currentProgress, isCheckOnly, periodEnd } from '@/domain/progress';
 import { nextSetupStep } from '@/domain/setup';
-import { timelineDays } from '@/domain/timeline';
+import { completesToday, timelineDays } from '@/domain/timeline';
 import type { Mission } from '@/domain/types';
 import { newId } from '@/storage/id';
 import { useAcorn } from '@/storage/store';
+import { ClearPop } from '@/ui/ClearPop';
 import { ConfirmModal } from '@/ui/ConfirmModal';
 import { DemoClock } from '@/ui/DemoClock';
 import { IconButton } from '@/ui/IconButton';
@@ -29,6 +30,12 @@ export default function HomeScreen() {
   const [recording, setRecording] = useState<Mission | null>(null);
   const [mode, setMode] = useState<InputMode>('buttons');
   const [undoing, setUndoing] = useState<Mission | null>(null);
+  // The mission cleared last, so its card can celebrate; `key` restarts the animation.
+  const [celebrating, setCelebrating] = useState<{
+    missionId: string;
+    key: number;
+    delay: number;
+  } | null>(null);
   // Real time as state, refreshed by the timers below. Reading Date.now() during render
   // would not refresh the screen, because the React Compiler memoizes the render.
   const [realNow, setRealNow] = useState(() => Date.now());
@@ -52,8 +59,13 @@ export default function HomeScreen() {
 
   function record(mission: Mission, value: number) {
     setRecording(null);
+    const completes = completesToday(week, data.clears, mission, now());
     dispatch({ type: 'recordProgress', missionId: mission.id, value, clearId: newId() });
-    if (value >= mission.target) toast(t('home.clearToast', { pt: mission.pt! }), 'success');
+    if (value < mission.target) return;
+    // Saved from the record window: start once the window has faded out.
+    const delay = recording ? 250 : 0;
+    setCelebrating((prev) => ({ missionId: mission.id, key: (prev?.key ?? 0) + 1, delay }));
+    toast(t(completes ? 'home.puzzleToast' : 'home.clearToast', { pt: mission.pt! }), 'success');
   }
 
   function undo() {
@@ -81,53 +93,65 @@ export default function HomeScreen() {
         const value = currentProgress(m, week, at);
         const left = remainingTime(periodEnd(m, week, at) - at);
         return (
-          <Window key={m.id} style={clear ? styles.cleared : undefined}>
-            <View style={styles.header}>
-              <PixelIcon name={m.kind} size={14} color={colors.acorn} label={t(`kind.${m.kind}`)} />
-              <PixelText style={styles.name}>{m.name}</PixelText>
-              <PixelText style={styles.pt}>{m.pt}pt</PixelText>
-            </View>
-            {!isCheckOnly(m) && (
-              <View style={styles.progressRow}>
-                <View style={styles.grow}>
-                  <ProgressBar value={value} unit={m.unit} target={m.target} cleared={!!clear} />
-                </View>
-                <PixelText style={styles.progressText}>{progressLabel(m, value, t)}</PixelText>
+          <ClearPop
+            key={m.id}
+            play={celebrating?.missionId === m.id ? celebrating.key : null}
+            delay={celebrating?.delay}
+            pt={m.pt}
+          >
+            <Window style={clear ? styles.cleared : undefined}>
+              <View style={styles.header}>
+                <PixelIcon
+                  name={m.kind}
+                  size={14}
+                  color={colors.acorn}
+                  label={t(`kind.${m.kind}`)}
+                />
+                <PixelText style={styles.name}>{m.name}</PixelText>
+                <PixelText style={styles.pt}>{m.pt}pt</PixelText>
               </View>
-            )}
-            <View style={styles.actions}>
-              <PixelText style={styles.left}>
-                {clear ? '' : t(`remaining.${left.unit}`, { value: left.value })}
-              </PixelText>
-              {clear ? (
-                <>
-                  <PixelText style={styles.clearedText}>{t('home.cleared')}</PixelText>
-                  {canUndo(data, clear, at) && (
-                    <IconButton
-                      icon="undo"
-                      label={t('home.undo')}
-                      onPress={() => setUndoing(m)}
-                      large
-                    />
-                  )}
-                </>
-              ) : isCheckOnly(m) ? (
-                <IconButton
-                  icon="check"
-                  label={t('home.check')}
-                  onPress={() => record(m, 1)}
-                  large
-                />
-              ) : (
-                <IconButton
-                  icon="record"
-                  label={t('home.record')}
-                  onPress={() => setRecording(m)}
-                  large
-                />
+              {!isCheckOnly(m) && (
+                <View style={styles.progressRow}>
+                  <View style={styles.grow}>
+                    <ProgressBar value={value} unit={m.unit} target={m.target} cleared={!!clear} />
+                  </View>
+                  <PixelText style={styles.progressText}>{progressLabel(m, value, t)}</PixelText>
+                </View>
               )}
-            </View>
-          </Window>
+              <View style={styles.actions}>
+                <PixelText style={styles.left}>
+                  {clear ? '' : t(`remaining.${left.unit}`, { value: left.value })}
+                </PixelText>
+                {clear ? (
+                  <>
+                    <PixelText style={styles.clearedText}>{t('home.cleared')}</PixelText>
+                    {canUndo(data, clear, at) && (
+                      <IconButton
+                        icon="undo"
+                        label={t('home.undo')}
+                        onPress={() => setUndoing(m)}
+                        large
+                      />
+                    )}
+                  </>
+                ) : isCheckOnly(m) ? (
+                  <IconButton
+                    icon="check"
+                    label={t('home.check')}
+                    onPress={() => record(m, 1)}
+                    large
+                  />
+                ) : (
+                  <IconButton
+                    icon="record"
+                    label={t('home.record')}
+                    onPress={() => setRecording(m)}
+                    large
+                  />
+                )}
+              </View>
+            </Window>
+          </ClearPop>
         );
       })}
       <DemoClock />

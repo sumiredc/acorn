@@ -2,14 +2,25 @@ import { StyleSheet, View } from 'react-native';
 
 import { colors } from './theme';
 
-// Small one-color pixel icons, 7×7. '#' is drawn, '.' is transparent.
+// Small one-color pixel icons, mostly 7×7. '#' is drawn, '.' is transparent.
 export const ICONS = {
   daily: ['...#...', '.#...#.', '..###..', '#.###.#', '..###..', '.#...#.', '...#...'],
   weekly: ['#######', '#######', '#.....#', '#.#.#.#', '#.....#', '#.#.#.#', '#######'],
   buttons: ['...#...', '...#...', '.#####.', '...#...', '...#...', '.......', '.#####.'],
   bar: ['.......', '.......', '#######', '####..#', '#######', '.......', '.......'],
   number: ['.......', '.#.#.#.', '.......', '.#.#.#.', '.......', '.#.#.#.', '.......'],
-  record: ['.....##', '....###', '...###.', '..###..', '.###...', '##.....', '#......'],
+  // 9×9 so the pencil's eraser, outline and tip all read.
+  record: [
+    '.......##',
+    '......###',
+    '.....###.',
+    '....#.#..',
+    '...#.#...',
+    '..#.#....',
+    '.#.#.....',
+    '###......',
+    '#........',
+  ],
   undo: ['..#....', '.##....', '######.', '.##...#', '..#...#', '......#', '..####.'],
   close: ['#.....#', '.#...#.', '..#.#..', '...#...', '..#.#..', '.#...#.', '#.....#'],
   save: ['.......', '......#', '.....##', '#...##.', '##.##..', '.###...', '..#....'],
@@ -27,18 +38,20 @@ export function PixelIcon({
   label,
 }: {
   name: IconName;
+  // Size of a 7×7 icon; larger grids keep the same pixel size and come out bigger.
   size?: number;
   color?: string;
   label?: string;
 }) {
   const rows = ICONS[name];
-  const pixel = size / rows.length;
+  const pixel = size / 7;
+  const side = pixel * rows.length;
   return (
     <View
       accessible={label !== undefined}
       accessibilityRole={label !== undefined ? 'image' : undefined}
       accessibilityLabel={label}
-      style={{ width: size, height: size }}
+      style={{ width: side, height: side }}
     >
       {rows.map((row, y) => (
         <View key={y} style={styles.row}>
