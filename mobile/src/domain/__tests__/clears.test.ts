@@ -1,5 +1,5 @@
 import { balance } from '../balance';
-import { canRecord, canUndo, currentClear, UNDO_MS } from '../clears';
+import { canRecord, canUndo, currentClear, nextUndoDeadline, UNDO_MS } from '../clears';
 import type { Clear, Mission, Reward, Week } from '../types';
 
 const NOW = new Date(2026, 9, 21, 9).getTime(); // Wednesday
@@ -80,5 +80,17 @@ describe('canUndo', () => {
 
   it('refuses when the balance would go below 0', () => {
     expect(canUndo({ clears: [c], rewards: [reward(1, 'redeemed')] }, c, NOW)).toBe(false);
+  });
+});
+
+describe('nextUndoDeadline', () => {
+  it('is the earliest undo window still open', () => {
+    const clears = [
+      clear('daily', '2026-10-21', { clearedAt: NOW - UNDO_MS - 1 }),
+      clear('weekly', '2026-10-21', { clearedAt: NOW - 10 }),
+      clear('daily', '2026-10-20', { clearedAt: NOW }),
+    ];
+    expect(nextUndoDeadline(clears, NOW)).toBe(NOW - 10 + UNDO_MS);
+    expect(nextUndoDeadline(clears.slice(0, 1), NOW)).toBeNull();
   });
 });

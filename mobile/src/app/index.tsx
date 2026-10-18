@@ -2,8 +2,8 @@ import { Redirect } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { canUndo, currentClear } from '@/domain/clears';
-import { remainingTime } from '@/domain/clock';
+import { canUndo, currentClear, nextUndoDeadline } from '@/domain/clears';
+import { appNow, remainingTime } from '@/domain/clock';
 import { currentProgress, periodEnd } from '@/domain/progress';
 import { nextSetupStep } from '@/domain/setup';
 import { timelineDays } from '@/domain/timeline';
@@ -26,17 +26,26 @@ export default function HomeScreen() {
   const toast = useToast();
   const [recording, setRecording] = useState<Mission | null>(null);
   const [mode, setMode] = useState<InputMode>('buttons');
-  // Re-render every minute so the time left and the undo button stay current.
-  const [, setMinute] = useState(0);
+  // Real time as state, refreshed by the timers below. Reading Date.now() during render
+  // would not refresh the screen, because the React Compiler memoizes the render.
+  const [realNow, setRealNow] = useState(() => Date.now());
+  // Every minute, so the time left stays current.
   useEffect(() => {
-    const timer = setInterval(() => setMinute((n) => n + 1), 60 * 1000);
+    const timer = setInterval(() => setRealNow(Date.now()), 60 * 1000);
     return () => clearInterval(timer);
   }, []);
+  // And right when an undo window closes, so its button disappears on time.
+  useEffect(() => {
+    const deadline = nextUndoDeadline(data.clears, now());
+    if (deadline === null) return;
+    const timer = setTimeout(() => setRealNow(Date.now()), deadline - now() + 1);
+    return () => clearTimeout(timer);
+  }, [data.clears, now, realNow]);
 
   if (nextSetupStep(data) !== null) return <Redirect href="/setup" />;
 
   const week = data.week!;
-  const at = now();
+  const at = appNow(realNow, data.clockOffsetMs);
 
   function save(value: number) {
     const mission = recording!;

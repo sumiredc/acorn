@@ -23,3 +23,9 @@ export function canRecord(clears: Clear[], mission: Mission, week: Week, now: nu
 export function canUndo(data: Pick<AcornData, 'clears' | 'rewards'>, clear: Clear, now: number) {
   return now - clear.clearedAt <= UNDO_MS && balance(data) >= clear.pt;
 }
+
+// The next moment an undo button should disappear, or null when none can be undone by time.
+export function nextUndoDeadline(clears: Clear[], now: number): number | null {
+  const deadlines = clears.map((c) => c.clearedAt + UNDO_MS).filter((d) => d >= now);
+  return deadlines.length > 0 ? Math.min(...deadlines) : null;
+}

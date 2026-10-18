@@ -40,26 +40,16 @@ function Puzzle({ cleared, total }: { cleared: number; total: number }) {
     <View style={styles.puzzle}>
       {rows.map((row, y) => (
         <View key={y} style={styles.pixelRow}>
-          {[...row].map((piece, x) => {
-            // A light line where a piece meets another, like the cut of a jigsaw.
-            const edge = row[x + 1] !== undefined && row[x + 1] !== piece;
-            const below = rows[y + 1]?.[x];
-            const cut = edge || (below !== undefined && below !== piece);
-            return (
-              <View
-                key={x}
-                style={{
-                  width: pixel,
-                  height: pixel,
-                  backgroundColor: cut
-                    ? colors.window
-                    : filled.has(piece)
-                      ? colors.leaf
-                      : colors.soft,
-                }}
-              />
-            );
-          })}
+          {[...row].map((piece, x) => (
+            <View
+              key={x}
+              style={{
+                width: pixel,
+                height: pixel,
+                backgroundColor: filled.has(piece) ? colors.leaf : colors.soft,
+              }}
+            />
+          ))}
         </View>
       ))}
     </View>
