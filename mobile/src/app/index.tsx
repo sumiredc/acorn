@@ -132,10 +132,10 @@ export default function HomeScreen() {
 
   return (
     <Screen
+      logo={false}
       right={
         <PointCounter
           ref={counterRef}
-          label={t('home.total')}
           spokenLabel={t('home.totalSpoken', { count: totalEarned(data.clears) })}
           value={totalEarned(data.clears) - (pending?.pt ?? 0)}
         />

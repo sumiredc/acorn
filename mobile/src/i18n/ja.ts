@@ -47,7 +47,6 @@ export const ja: Dictionary = {
   'progress.save': '記録',
   'progress.complete': 'すべて完了',
 
-  'home.total': '累計',
   'home.totalSpoken': '集めたどんぐり {count}個',
   'acorns.count': 'どんぐり {count}個',
   'home.greeting': '{name}さん、おかえりなさい！',

@@ -9,11 +9,13 @@ import { colors, layout } from './theme';
 // Phone-width column, centered on web, with the title bar.
 export function Screen({
   title,
+  logo = true,
   right,
   overlay,
   children,
 }: {
   title?: string;
+  logo?: boolean;
   right?: ReactNode;
   // Drawn over the whole screen without taking touches, such as points flying across it.
   overlay?: ReactNode;
@@ -25,7 +27,7 @@ export function Screen({
         <View style={styles.column}>
           <View style={styles.header}>
             <View style={styles.titleRow}>
-              <Logo size={28} />
+              {logo && <Logo size={28} />}
               {title && <PixelText style={styles.title}>{title}</PixelText>}
             </View>
             {right}

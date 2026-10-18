@@ -12,12 +12,10 @@ const useNativeDriver = Platform.OS !== 'web';
 // Total points, counting up with a small pop whenever the value changes, and sparks when it grows.
 export function PointCounter({
   value,
-  label,
   spokenLabel,
   ref,
 }: {
   value: number;
-  label: string;
   // Read out for the whole counter, such as "Acorns collected: 12".
   spokenLabel: string;
   ref?: Ref<ViewHandle>;
@@ -50,7 +48,6 @@ export function PointCounter({
 
   return (
     <View ref={ref} accessible accessibilityLabel={spokenLabel} style={styles.box}>
-      <PixelText style={styles.label}>{label}</PixelText>
       <Animated.View style={[styles.amount, { transform: [{ scale }] }]}>
         <Logo size={24} label={null} />
         <PixelText style={styles.value}>{shown}</PixelText>
@@ -61,9 +58,8 @@ export function PointCounter({
 }
 
 const styles = StyleSheet.create({
-  box: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  box: { flexDirection: 'row', alignItems: 'center' },
   amount: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  label: { fontSize: 12, color: colors.muted },
   value: { fontSize: 22, color: colors.acorn },
   sparks: { right: 6, top: 2 },
 });
