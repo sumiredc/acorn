@@ -1,8 +1,10 @@
 import { type AcornData, initialData, type Mission } from '@/domain/types';
 
-// Missions saved before units existed were one-off goals.
+// Missions saved before units existed, or with the old 'none' unit, track progress in %.
 function withGoal(mission: Mission): Mission {
-  return { ...mission, unit: mission.unit ?? 'none', target: mission.target ?? 1 };
+  const unit = (mission.unit as string | undefined) ?? 'none';
+  if (unit !== 'none') return mission;
+  return { ...mission, unit: 'percent', target: 100 };
 }
 
 // Fills fields added since the data was saved, so older saves still load.

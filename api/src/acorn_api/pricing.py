@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 MissionKind = Literal["daily", "weekly"]
-MissionUnit = Literal["none", "count", "minutes"]
+MissionUnit = Literal["percent", "count", "minutes"]
 RewardMode = Literal["price", "period"]
 
 LEVEL_KEYS = ("level_0", "level_1", "level_2", "level_3", "level_4")

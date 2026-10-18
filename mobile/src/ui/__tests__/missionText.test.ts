@@ -12,6 +12,6 @@ describe('goalLabel', () => {
   });
 
   it('is empty for a one-off mission', () => {
-    expect(goalLabel({ unit: 'none', target: 1 }, ja)).toBe('');
+    expect(goalLabel({ unit: 'percent', target: 1 }, ja)).toBe('');
   });
 });

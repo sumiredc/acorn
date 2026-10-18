@@ -1,11 +1,11 @@
-import { canAddMission, canFinishMissions, missionTarget } from '../week';
+import { canAddMission, canFinishMissions, missionSlots, missionTarget } from '../week';
 import type { Mission, MissionKind } from '../types';
 
 const mission = (kind: MissionKind, id: string = kind): Mission => ({
   id,
   name: id,
   kind,
-  unit: 'none',
+  unit: 'percent',
   target: 1,
   pt: null,
   judgement: null,
@@ -35,8 +35,8 @@ describe('mission limits', () => {
 });
 
 describe('missionTarget', () => {
-  it('is always 1 for a one-off mission', () => {
-    expect(missionTarget('none', 0)).toBe(1);
+  it('is always 100 for a mission tracked in %', () => {
+    expect(missionTarget('percent', 0)).toBe(100);
   });
 
   it('accepts whole numbers from 1 for counts and minutes', () => {
@@ -45,5 +45,17 @@ describe('missionTarget', () => {
     expect(missionTarget('count', 0)).toBeNull();
     expect(missionTarget('minutes', 2.5)).toBeNull();
     expect(missionTarget('count', Number.NaN)).toBeNull();
+  });
+});
+
+describe('missionSlots', () => {
+  it('lists 3 daily and 1 weekly slot, filled ones first', () => {
+    const slots = missionSlots([mission('weekly', 'w'), mission('daily', 'd')]);
+    expect(slots.map((s) => [s.kind, s.mission?.id ?? null])).toEqual([
+      ['daily', 'd'],
+      ['daily', null],
+      ['daily', null],
+      ['weekly', 'w'],
+    ]);
   });
 });

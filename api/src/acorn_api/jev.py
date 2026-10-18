@@ -54,7 +54,7 @@ class MissionInput:
     id: str
     name: str
     kind: MissionKind
-    unit: MissionUnit = "none"
+    unit: MissionUnit = "percent"
     target: int = 1
 
 
@@ -63,7 +63,7 @@ def goal_text(unit: MissionUnit, target: int) -> str:
         return f"{target} times"
     if unit == "minutes":
         return f"{target} minutes in total"
-    return "do it once"
+    return "complete it fully"
 
 
 @dataclass(frozen=True)

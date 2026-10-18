@@ -31,11 +31,11 @@ describe('reduce', () => {
         id: 'w1',
         name: '  Clean room ',
         kind: 'weekly',
-        unit: 'none',
+        unit: 'percent',
         target: 1,
       },
-      { type: 'addMission', id: 'w2', name: 'Another', kind: 'weekly', unit: 'none', target: 1 },
-      { type: 'addMission', id: 'd1', name: '   ', kind: 'daily', unit: 'none', target: 1 },
+      { type: 'addMission', id: 'w2', name: 'Another', kind: 'weekly', unit: 'percent', target: 1 },
+      { type: 'addMission', id: 'd1', name: '   ', kind: 'daily', unit: 'percent', target: 1 },
     ]);
     expect(data.week!.missions.map((m) => [m.id, m.name])).toEqual([['w1', 'Clean room']]);
   });
@@ -44,17 +44,17 @@ describe('reduce', () => {
     const data = run([
       { type: 'addMission', id: 'a', name: 'Push-ups', kind: 'daily', unit: 'count', target: 20 },
       { type: 'addMission', id: 'b', name: 'Read', kind: 'daily', unit: 'minutes', target: 0 },
-      { type: 'addMission', id: 'c', name: 'Clean', kind: 'weekly', unit: 'none', target: 99 },
+      { type: 'addMission', id: 'c', name: 'Clean', kind: 'weekly', unit: 'percent', target: 99 },
     ]);
     expect(data.week!.missions.map((m) => [m.id, m.unit, m.target])).toEqual([
       ['a', 'count', 20],
-      ['c', 'none', 1],
+      ['c', 'percent', 100],
     ]);
   });
 
   it('removes a mission during setup', () => {
     const data = run([
-      { type: 'addMission', id: 'a', name: 'A', kind: 'daily', unit: 'none', target: 1 },
+      { type: 'addMission', id: 'a', name: 'A', kind: 'daily', unit: 'percent', target: 1 },
       { type: 'removeMission', id: 'a' },
     ]);
     expect(data.week!.missions).toEqual([]);
@@ -67,9 +67,9 @@ describe('reduce', () => {
 
   it('activates the week once every mission is scored', () => {
     const data = run([
-      { type: 'addMission', id: 'a', name: 'A', kind: 'daily', unit: 'none', target: 1 },
+      { type: 'addMission', id: 'a', name: 'A', kind: 'daily', unit: 'percent', target: 1 },
       { type: 'missionsScored', results: [{ id: 'a', pt: 4, judgement }] },
-      { type: 'addMission', id: 'b', name: 'B', kind: 'daily', unit: 'none', target: 1 },
+      { type: 'addMission', id: 'b', name: 'B', kind: 'daily', unit: 'percent', target: 1 },
     ]);
     expect(data.week!.status).toBe('active');
     expect(data.week!.missions).toHaveLength(1);
@@ -82,8 +82,8 @@ describe('reduce', () => {
 
   it('stays in setup when a result is missing', () => {
     const data = run([
-      { type: 'addMission', id: 'a', name: 'A', kind: 'daily', unit: 'none', target: 1 },
-      { type: 'addMission', id: 'b', name: 'B', kind: 'daily', unit: 'none', target: 1 },
+      { type: 'addMission', id: 'a', name: 'A', kind: 'daily', unit: 'percent', target: 1 },
+      { type: 'addMission', id: 'b', name: 'B', kind: 'daily', unit: 'percent', target: 1 },
       { type: 'missionsScored', results: [{ id: 'a', pt: 4, judgement }] },
     ]);
     expect(data.week!.status).toBe('setup');

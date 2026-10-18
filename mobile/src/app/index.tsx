@@ -23,7 +23,9 @@ export default function HomeScreen() {
           <View style={styles.header}>
             <PixelText style={styles.name}>
               <PixelText style={styles.kind}>[{t(`kind.${m.kind}`)}]</PixelText> {m.name}
-              {m.unit !== 'none' && <PixelText style={styles.goal}> {goalLabel(m, t)}</PixelText>}
+              {m.unit !== 'percent' && (
+                <PixelText style={styles.goal}> {goalLabel(m, t)}</PixelText>
+              )}
             </PixelText>
             <PixelText style={styles.pt}>{m.pt}pt</PixelText>
           </View>

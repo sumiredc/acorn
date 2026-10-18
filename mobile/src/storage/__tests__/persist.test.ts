@@ -18,12 +18,11 @@ describe('parseSaved', () => {
     expect(parseSaved(JSON.stringify({ week })).week!.status).toBe('setup');
   });
 
-  it('treats missions saved before units as one-off goals', () => {
+  it('tracks missions saved before units, or with the old none unit, in %', () => {
     const old = { id: 'a', name: 'A', kind: 'daily', pt: 4, judgement: null };
     const week = { weekStart: '2026-10-19', status: 'active', missions: [old] };
-    expect(parseSaved(JSON.stringify({ week })).week!.missions[0]).toMatchObject({
-      unit: 'none',
-      target: 1,
-    });
+    const none = { ...old, id: 'b', unit: 'none', target: 1 };
+    const saved = parseSaved(JSON.stringify({ week: { ...week, missions: [old, none] } }));
+    for (const m of saved.week!.missions) expect(m).toMatchObject({ unit: 'percent', target: 100 });
   });
 });

@@ -1,6 +1,6 @@
 export type MissionKind = 'daily' | 'weekly';
-// none: done in one go. count: N times. minutes: N minutes in total.
-export type MissionUnit = 'none' | 'count' | 'minutes';
+// percent: progress from 0 to 100%. count: N times. minutes: N minutes in total.
+export type MissionUnit = 'percent' | 'count' | 'minutes';
 export type Locale = 'en' | 'ja';
 
 export type Judgement = {
@@ -25,7 +25,7 @@ export type Mission = {
   name: string;
   kind: MissionKind;
   unit: MissionUnit;
-  // Always 1 for 'none'. Daily goals restart each day; weekly goals add up over the week.
+  // 100 for 'percent'. Daily goals restart each day; weekly goals add up over the week.
   target: number;
   // null until Jev has scored it this week.
   pt: number | null;

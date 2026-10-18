@@ -5,6 +5,6 @@ type Translate = (key: MessageKey, params?: Record<string, string | number>) => 
 
 // "20 times" / "20回"; empty for a one-off mission.
 export function goalLabel(mission: Pick<Mission, 'unit' | 'target'>, t: Translate): string {
-  if (mission.unit === 'none') return '';
+  if (mission.unit === 'percent') return '';
   return t(`goal.${mission.unit}`, { target: mission.target });
 }

@@ -18,7 +18,7 @@ class MissionIn(CamelModel):
     id: str = Field(min_length=1)
     name: str = Field(min_length=1, max_length=200)
     kind: MissionKind
-    unit: MissionUnit = "none"
+    unit: MissionUnit = "percent"
     target: int = Field(default=1, ge=1, le=10000)
 
 

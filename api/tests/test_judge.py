@@ -96,7 +96,7 @@ def test_mission_goals_reach_the_judge(client: TestClient) -> None:
         },
     )
     assert response.status_code == 200
-    assert [(m.unit, m.target) for m in judge.received] == [("count", 20), ("none", 1)]
+    assert [(m.unit, m.target) for m in judge.received] == [("count", 20), ("percent", 1)]
 
 
 def test_zero_target_is_rejected(client: TestClient) -> None:
@@ -108,7 +108,11 @@ def test_zero_target_is_rejected(client: TestClient) -> None:
 
 @pytest.mark.parametrize(
     ("unit", "target", "text"),
-    [("count", 20, "20 times"), ("minutes", 30, "30 minutes in total"), ("none", 1, "do it once")],
+    [
+        ("count", 20, "20 times"),
+        ("minutes", 30, "30 minutes in total"),
+        ("percent", 1, "complete it fully"),
+    ],
 )
 def test_goal_text(unit: MissionUnit, target: int, text: str) -> None:
     assert goal_text(unit, target) == text

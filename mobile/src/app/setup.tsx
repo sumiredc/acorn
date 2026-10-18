@@ -1,13 +1,14 @@
 import { Redirect } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { apiClient } from '@/api/client';
 import { nextSetupStep } from '@/domain/setup';
-import type { Locale, MissionKind, MissionUnit } from '@/domain/types';
-import { canAddMission, canFinishMissions, missionTarget } from '@/domain/week';
+import type { Locale, MissionKind } from '@/domain/types';
+import { canFinishMissions, missionSlots } from '@/domain/week';
 import { useAcorn } from '@/storage/store';
 import { goalLabel } from '@/ui/missionText';
+import { MissionModal, type NewMission } from '@/ui/MissionModal';
 import { ActionButton, Choice, ErrorText, Field, PixelText, Window } from '@/ui/primitives';
 import { Screen } from '@/ui/Screen';
 import { colors } from '@/ui/theme';
@@ -19,7 +20,6 @@ const LANGUAGES: { value: Locale; label: string }[] = [
   { value: 'ja', label: '日本語' },
 ];
 const KINDS: MissionKind[] = ['daily', 'weekly'];
-const UNITS: MissionUnit[] = ['none', 'count', 'minutes'];
 
 function newId(): string {
   return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
@@ -68,7 +68,6 @@ function NameStep() {
   return (
     <>
       <Window title={t('setup.name.title')}>
-        <PixelText style={styles.help}>{t('setup.name.help')}</PixelText>
         <Field
           value={name}
           onChangeText={setName}
@@ -120,15 +119,8 @@ function MissionsStep() {
   const { data, dispatch, t } = useAcorn();
   const showToast = useToast();
   const missions = data.week?.missions ?? [];
-  const [name, setName] = useState('');
-  const [kind, setKind] = useState<MissionKind>('daily');
-  const [unit, setUnit] = useState<MissionUnit>('none');
-  const [targetText, setTargetText] = useState('');
+  const [adding, setAdding] = useState<MissionKind | null>(null);
   const [sending, setSending] = useState(false);
-  const canAdd = !sending && canAddMission(missions, kind);
-  const target = missionTarget(unit, Number(targetText));
-  const ready =
-    canAdd && name.trim() !== '' && (unit === 'none' || targetText !== '') && target !== null;
 
   async function score() {
     setSending(true);
@@ -147,71 +139,49 @@ function MissionsStep() {
     else showToast(t(`error.${result.error}`));
   }
 
-  function add() {
-    if (!ready) return;
-    dispatch({ type: 'addMission', id: newId(), name, kind, unit, target: target! });
-    setName('');
-    setTargetText('');
+  function add(mission: NewMission & { kind: MissionKind }) {
+    dispatch({ type: 'addMission', id: newId(), ...mission });
+    setAdding(null);
   }
 
   return (
     <>
       <Window title={t('setup.missions.title')}>
-        <PixelText style={styles.help}>{t('setup.missions.help')}</PixelText>
-        {missions.map((m) => (
-          <View key={m.id} style={styles.missionRow}>
-            <PixelText style={styles.grow}>
-              <PixelText style={styles.kind}>[{t(`kind.${m.kind}`)}]</PixelText> {m.name}
-              {m.unit !== 'none' && <PixelText style={styles.goal}> {goalLabel(m, t)}</PixelText>}
-            </PixelText>
-            <ActionButton
-              tone="plain"
-              label={t('setup.missions.remove')}
-              disabled={sending}
-              onPress={() => dispatch({ type: 'removeMission', id: m.id })}
-            />
+        {KINDS.map((kind) => (
+          <View key={kind} style={styles.group}>
+            <PixelText style={styles.kind}>{t(`kind.${kind}`)}</PixelText>
+            {missionSlots(missions)
+              .filter((slot) => slot.kind === kind)
+              .map(({ mission }, i) =>
+                mission ? (
+                  <View key={mission.id} style={styles.slot}>
+                    <PixelText style={styles.grow}>
+                      {mission.name}
+                      {mission.unit !== 'percent' && (
+                        <PixelText style={styles.goal}> {goalLabel(mission, t)}</PixelText>
+                      )}
+                    </PixelText>
+                    <ActionButton
+                      tone="plain"
+                      label={t('setup.missions.remove')}
+                      disabled={sending}
+                      onPress={() => dispatch({ type: 'removeMission', id: mission.id })}
+                    />
+                  </View>
+                ) : (
+                  <Pressable
+                    key={`empty-${i}`}
+                    accessibilityRole="button"
+                    disabled={sending}
+                    onPress={() => setAdding(kind)}
+                    style={[styles.slot, styles.empty]}
+                  >
+                    <PixelText style={styles.emptyLabel}>{t('setup.missions.empty')}</PixelText>
+                  </Pressable>
+                ),
+              )}
           </View>
         ))}
-        <Choice
-          options={KINDS.map((k) => ({ value: k, label: t(`kind.${k}`) }))}
-          value={kind}
-          onChange={setKind}
-          disabled={sending}
-        />
-        <Field
-          value={name}
-          onChangeText={setName}
-          onSubmitEditing={add}
-          placeholder={t('setup.missions.placeholder')}
-          accessibilityLabel={t('setup.missions.placeholder')}
-        />
-        <PixelText style={styles.help}>{t('setup.missions.unit')}</PixelText>
-        <Choice
-          options={UNITS.map((u) => ({ value: u, label: t(`unit.${u}`) }))}
-          value={unit}
-          onChange={setUnit}
-          disabled={sending}
-        />
-        {unit !== 'none' && (
-          <View style={styles.inline}>
-            <Field
-              style={styles.grow}
-              value={targetText}
-              onChangeText={setTargetText}
-              onSubmitEditing={add}
-              keyboardType="number-pad"
-              placeholder={unit === 'count' ? '20' : '30'}
-              accessibilityLabel={t('setup.missions.target')}
-            />
-            <PixelText>{t(`goal.${unit}`, { target: '' }).trim()}</PixelText>
-          </View>
-        )}
-        {!canAdd && (
-          <PixelText style={styles.help}>
-            {t('setup.missions.full', { kind: t(`kind.${kind}`) })}
-          </PixelText>
-        )}
-        <ActionButton label={t('setup.missions.add')} disabled={!ready} onPress={add} />
       </Window>
       <ActionButton
         wide
@@ -219,6 +189,7 @@ function MissionsStep() {
         disabled={sending || !canFinishMissions(missions)}
         onPress={score}
       />
+      <MissionModal kind={adding} onAdd={add} onClose={() => setAdding(null)} />
     </>
   );
 }
@@ -227,7 +198,19 @@ const styles = StyleSheet.create({
   help: { fontSize: 13, color: colors.muted },
   inline: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   grow: { flex: 1 },
-  missionRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  group: { gap: 6 },
+  slot: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    minHeight: 48,
+    paddingHorizontal: 10,
+    borderWidth: 2,
+    borderColor: colors.ink,
+    borderRadius: 6,
+  },
+  empty: { borderStyle: 'dashed', borderColor: colors.muted, justifyContent: 'center' },
+  emptyLabel: { color: colors.muted, fontSize: 14 },
   kind: { color: colors.acorn, fontSize: 13 },
   goal: { color: colors.sky },
 });

@@ -17,9 +17,22 @@ export function canFinishMissions(missions: Mission[]): boolean {
 
 export const MAX_TARGET = 10000;
 
+export type MissionSlot = { kind: MissionKind; mission: Mission | null };
+
+// Every place a mission can go this week, filled ones first within each kind.
+export function missionSlots(missions: Mission[]): MissionSlot[] {
+  return (['daily', 'weekly'] as const).flatMap((kind) => {
+    const filled = missions.filter((m) => m.kind === kind);
+    return Array.from({ length: MISSION_LIMITS[kind] }, (_, i) => ({
+      kind,
+      mission: filled[i] ?? null,
+    }));
+  });
+}
+
 // The goal to store, or null when the target does not fit the unit.
 export function missionTarget(unit: MissionUnit, target: number): number | null {
-  if (unit === 'none') return 1;
+  if (unit === 'percent') return 100;
   return Number.isInteger(target) && target >= 1 && target <= MAX_TARGET ? target : null;
 }
 
