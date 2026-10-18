@@ -72,6 +72,7 @@ PRD ref: `prd.ja.md > The Core Journey`
 - デモ動画：https://youtube.com/shorts/ydS4rhTu7JY （英語、約 55 秒）。Playwright でスマホ幅（390×844）の画面を操作して収録した。ミッションの採点とごほうびの値付けは収録中の実際の Jev の結果で、月〜土のクリアの記録は収録用に用意したデータ。ナレーションと字幕は学習者が書き、読み上げは macOS の `say`（Samantha）、BGM は自作の 8 ビット風の曲。
 - 提出に必要なのは、短いデモ動画と公開 GitHub リポジトリ。デプロイは任意。
 - 公開リポジトリ：https://github.com/sumiredc/acorn
+- Devpost の提出ページ：https://devpost.com/software/acorn-142kr8
 - 任意のデプロイ：他の人にも使ってもらう場合だけ、自宅サーバーの k8s に配置する（学習者の判断）。API キーをサーバー側に置く構成はそのまま使える。PoC では行わない。
 
 ## Look and Feel

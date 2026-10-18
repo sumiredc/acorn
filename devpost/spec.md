@@ -72,6 +72,7 @@ Documentation:
 - Demo video: https://youtube.com/shorts/ydS4rhTu7JY (English, about 55 seconds). Recorded by driving the screen at phone width (390×844) with Playwright. The mission scoring and reward pricing are real Jev results during recording, and the Monday–Saturday clear records are data prepared for the recording. The learner wrote the narration and subtitles; the voice is macOS `say` (Samantha), and the BGM is a self-made 8-bit style track.
 - What the submission needs is a short demo video and a public GitHub repository. Deployment is optional.
 - Public repository: https://github.com/sumiredc/acorn
+- Devpost submission: https://devpost.com/software/acorn-142kr8
 - Optional deployment: only if others are to use it, place it on the home server's k8s (learner's decision). The setup that keeps the API key on the server side can be used as is. Not done for the PoC.
 
 ## Look and Feel
