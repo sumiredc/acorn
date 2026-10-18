@@ -37,7 +37,7 @@ export function missionTarget(unit: MissionUnit, target: number): number | null 
 }
 
 export function newWeek(now: number): Week {
-  return { weekStart: mondayKey(now), status: 'setup', missions: [] };
+  return { weekStart: mondayKey(now), status: 'setup', missions: [], progress: {} };
 }
 
 export function ensureWeek(data: AcornData, now: number): AcornData {

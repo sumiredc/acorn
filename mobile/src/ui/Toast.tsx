@@ -6,15 +6,16 @@ import { colors, layout } from './theme';
 
 export const TOAST_MS = 3500;
 
-type ShowToast = (message: string) => void;
+type Tone = 'error' | 'success';
+type ShowToast = (message: string, tone?: Tone) => void;
 
 const ToastContext = createContext<ShowToast | null>(null);
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const [toast, setToast] = useState<{ id: number; message: string } | null>(null);
+  const [toast, setToast] = useState<{ id: number; message: string; tone: Tone } | null>(null);
 
-  const show = useCallback<ShowToast>((message) => {
-    setToast({ id: Date.now(), message });
+  const show = useCallback<ShowToast>((message, tone = 'error') => {
+    setToast({ id: Date.now(), message, tone });
   }, []);
 
   useEffect(() => {
@@ -28,8 +29,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       {toast && (
         <View pointerEvents="none" style={styles.layer}>
-          <View accessibilityRole="alert" style={styles.toast}>
-            <PixelText style={styles.text}>{toast.message}</PixelText>
+          <View
+            accessibilityRole="alert"
+            style={[styles.toast, toast.tone === 'success' && styles.toastSuccess]}
+          >
+            <PixelText style={[styles.text, toast.tone === 'success' && styles.textSuccess]}>
+              {toast.message}
+            </PixelText>
           </View>
         </View>
       )}
@@ -54,5 +60,7 @@ const styles = StyleSheet.create({
     borderRadius: layout.radius,
     padding: 12,
   },
+  toastSuccess: { backgroundColor: colors.leafSoft, borderColor: colors.leaf },
   text: { color: colors.berry, fontSize: 14 },
+  textSuccess: { color: colors.leaf },
 });

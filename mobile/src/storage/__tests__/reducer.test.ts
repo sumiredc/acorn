@@ -1,3 +1,4 @@
+import { DAY_MS, MINUTE_MS } from '@/domain/clock';
 import { type AcornData, initialData } from '@/domain/types';
 
 import { type Action, reduce } from '../reducer';
@@ -15,7 +16,12 @@ const judgement = {
 describe('reduce', () => {
   it('creates this week on first use', () => {
     const data = run([{ type: 'tick' }]);
-    expect(data.week).toEqual({ weekStart: '2026-10-19', status: 'setup', missions: [] });
+    expect(data.week).toEqual({
+      weekStart: '2026-10-19',
+      status: 'setup',
+      missions: [],
+      progress: {},
+    });
   });
 
   it('sets a positive budget and ignores others', () => {
@@ -92,5 +98,96 @@ describe('reduce', () => {
 
   it('stores the chosen language', () => {
     expect(run([{ type: 'setLocale', locale: 'ja' }]).locale).toBe('ja');
+  });
+});
+
+describe('progress and clears', () => {
+  const active = run([
+    { type: 'addMission', id: 'd', name: 'Push-ups', kind: 'daily', unit: 'count', target: 20 },
+    { type: 'addMission', id: 'w', name: 'Read', kind: 'weekly', unit: 'minutes', target: 300 },
+    {
+      type: 'missionsScored',
+      results: [
+        { id: 'd', pt: 4, judgement },
+        { id: 'w', pt: 30, judgement },
+      ],
+    },
+  ]);
+  const record = (missionId: string, value: number, clearId = `c-${missionId}`): Action => ({
+    type: 'recordProgress',
+    missionId,
+    value,
+    clearId,
+  });
+
+  it('keeps progress below the goal without a clear', () => {
+    const data = run([record('d', 12)], active);
+    expect(data.week!.progress).toEqual({ 'd/2026-10-21': 12 });
+    expect(data.clears).toEqual([]);
+  });
+
+  it('clears the mission and earns its points when the goal is reached', () => {
+    const data = run([record('d', 12), record('d', 99)], active);
+    expect(data.week!.progress['d/2026-10-21']).toBe(20);
+    expect(data.clears).toEqual([
+      {
+        id: 'c-d',
+        missionId: 'd',
+        weekStart: '2026-10-19',
+        date: '2026-10-21',
+        pt: 4,
+        clearedAt: NOW,
+        progressBefore: 12,
+      },
+    ]);
+  });
+
+  it('cannot record before points are set', () => {
+    const setup = run([
+      { type: 'addMission', id: 'd', name: 'A', kind: 'daily', unit: 'count', target: 5 },
+      record('d', 5),
+    ]);
+    expect(setup.week!.progress).toEqual({});
+    expect(setup.clears).toEqual([]);
+  });
+
+  it('cannot record again once cleared today', () => {
+    const data = run([record('d', 20), record('d', 3, 'again')], active);
+    expect(data.week!.progress['d/2026-10-21']).toBe(20);
+    expect(data.clears).toHaveLength(1);
+  });
+
+  it('starts a daily goal over the next day and keeps the weekly one', () => {
+    const today = run([record('d', 20), record('w', 120)], active);
+    const tomorrow = [record('d', 20, 'next'), record('w', 300)].reduce(
+      (data, action) => reduce(data, action, NOW + DAY_MS),
+      today,
+    );
+    expect(tomorrow.clears.map((c) => [c.missionId, c.date, c.progressBefore])).toEqual([
+      ['d', '2026-10-21', 0],
+      ['d', '2026-10-22', 0],
+      ['w', '2026-10-22', 120],
+    ]);
+  });
+
+  it('undoes a clear within 30 minutes, putting the points and progress back', () => {
+    const cleared = run([record('w', 100), record('w', 300)], active);
+    const undone = reduce(cleared, { type: 'undoClear', clearId: 'c-w' }, NOW + 30 * MINUTE_MS);
+    expect(undone.clears).toEqual([]);
+    expect(undone.week!.progress['w/2026-10-19']).toBe(100);
+    expect(run([record('w', 300, 'again')], undone).clears).toHaveLength(1);
+  });
+
+  it('does not undo after 30 minutes', () => {
+    const cleared = run([record('d', 20)], active);
+    const late = reduce(cleared, { type: 'undoClear', clearId: 'c-d' }, NOW + 31 * MINUTE_MS);
+    expect(late.clears).toHaveLength(1);
+  });
+
+  it('advances the clock by one day, which also ends the undo window', () => {
+    const cleared = run([record('d', 20), { type: 'advanceDay' }], active);
+    expect(cleared.clockOffsetMs).toBe(DAY_MS);
+    const later = NOW + cleared.clockOffsetMs;
+    expect(reduce(cleared, { type: 'undoClear', clearId: 'c-d' }, later).clears).toHaveLength(1);
   });
 });

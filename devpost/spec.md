@@ -101,6 +101,10 @@ PRD ref: `prd.md > States and Boundaries`（ずっと残るもの）
   PRD ref: `prd.md > デモ用の時間操作`, `prd.md > 週のリセット`
 - `week.ts`：週の切り替えの判定と新しい週の作成、ミッションの件数チェック（デイリー ≤3、ウィークリー ≤1、合計 ≥1）、先週分の引き継ぎ（進捗なし）。
   PRD ref: `prd.md > ミッションとその pt`, `prd.md > 週のリセット`
+- `progress.ts`：進み具合の刻み（進捗率 10%、回数・時間は目標 ≤20 → 1、≤50 → 5、それ以上 → 10）、バーの位置から最寄りの刻みへの吸着、0〜目標への丸め、進み具合のキー（デイリーは日ごと、ウィークリーは週ごと）。
+  PRD ref: `prd.md > クリアと取り消し`
+- `timeline.ts`：月〜日の各日のデイリーのクリア状況、ウィークリーをクリアした日、今日の位置（タイムラインの表示データ）。
+  PRD ref: `prd.md > ホームのタイムライン`
 - `clears.ts`：クリアできるかの判定（採点済み、デイリーはその日に未クリア、ウィークリーはその週に未クリア）、クリア、取り消しの判定（30 分以内、かつ残高 ≥ その pt）。
   PRD ref: `prd.md > クリアと取り消し`
 - `balance.ts`：残高 = クリアの記録の pt の合計 − 交換済みの報酬の pt の合計。交換できるかの判定。
@@ -199,9 +203,11 @@ type Mission = { id: string; name: string; kind: "daily" | "weekly";
   unit: "percent" | "count" | "minutes"; target: number;   // percent のときは 100
   pt: number | null; judgement: Judgement | null };   // 採点前は null
 type Week = { weekStart: string;     // 月曜の日付 "YYYY-MM-DD"
-  status: "setup" | "active"; missions: Mission[] };
+  status: "setup" | "active"; missions: Mission[];
+  progress: Record<string, number> };  // "ミッションID/日付"（デイリー）or "ミッションID/週の月曜"（ウィークリー）→ 進み具合
 type Clear = { id: string; missionId: string; weekStart: string; date: string;
-  pt: number; clearedAt: number };   // clearedAt はアプリ時刻
+  pt: number; clearedAt: number;     // clearedAt はアプリ時刻
+  progressBefore: number };          // クリアした記録の直前の進み具合。取り消すとここに戻す
 ```
 
 - **どこに置くか**：すべて端末の中。API サーバーは何も保存しない。

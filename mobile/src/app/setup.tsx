@@ -6,6 +6,7 @@ import { apiClient } from '@/api/client';
 import { nextSetupStep } from '@/domain/setup';
 import type { Locale, MissionKind } from '@/domain/types';
 import { canFinishMissions, missionSlots } from '@/domain/week';
+import { newId } from '@/storage/id';
 import { useAcorn } from '@/storage/store';
 import { goalLabel } from '@/ui/missionText';
 import { MissionModal, type NewMission } from '@/ui/MissionModal';
@@ -20,10 +21,6 @@ const LANGUAGES: { value: Locale; label: string }[] = [
   { value: 'ja', label: '日本語' },
 ];
 const KINDS: MissionKind[] = ['daily', 'weekly'];
-
-function newId(): string {
-  return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
-}
 
 export default function SetupScreen() {
   const { data, t } = useAcorn();

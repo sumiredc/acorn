@@ -37,6 +37,8 @@ export type Week = {
   weekStart: string;
   status: 'setup' | 'active';
   missions: Mission[];
+  // Progress toward each goal, keyed by progressKey(): per day for daily, per week for weekly.
+  progress: Record<string, number>;
 };
 
 export type Clear = {
@@ -47,6 +49,8 @@ export type Clear = {
   pt: number;
   // App time (real time + demo offset).
   clearedAt: number;
+  // Progress before the record that reached the goal; undoing the clear puts it back.
+  progressBefore: number;
 };
 
 export type AcornData = {

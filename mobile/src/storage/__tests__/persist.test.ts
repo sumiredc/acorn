@@ -25,4 +25,12 @@ describe('parseSaved', () => {
     const saved = parseSaved(JSON.stringify({ week: { ...week, missions: [old, none] } }));
     for (const m of saved.week!.missions) expect(m).toMatchObject({ unit: 'percent', target: 100 });
   });
+
+  it('starts progress empty for weeks and clears saved before progress existed', () => {
+    const week = { weekStart: '2026-10-19', status: 'active', missions: [] };
+    const clear = { id: 'c', missionId: 'a', weekStart: '2026-10-19', date: '2026-10-21', pt: 4 };
+    const saved = parseSaved(JSON.stringify({ week, clears: [clear] }));
+    expect(saved.week!.progress).toEqual({});
+    expect(saved.clears[0].progressBefore).toBe(0);
+  });
 });

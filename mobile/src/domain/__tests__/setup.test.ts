@@ -1,7 +1,12 @@
 import { nextSetupStep } from '../setup';
 import { type AcornData, initialData } from '../types';
 
-const week = (status: 'setup' | 'active') => ({ weekStart: '2026-10-19', status, missions: [] });
+const week = (status: 'setup' | 'active') => ({
+  weekStart: '2026-10-19',
+  status,
+  missions: [],
+  progress: {},
+});
 const ready: AcornData = { ...initialData, locale: 'ja', userName: 'Sumire', budgetUsd: 500 };
 
 describe('nextSetupStep', () => {

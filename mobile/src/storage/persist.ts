@@ -15,9 +15,11 @@ export function parseSaved(raw: string | null): AcornData {
     const data = { ...initialData, ...saved };
     if (data.week) {
       const status = data.week.status === 'active' ? 'active' : 'setup';
-      data.week = { ...data.week, status, missions: data.week.missions.map(withGoal) };
+      const missions = data.week.missions.map(withGoal);
+      data.week = { ...data.week, status, missions, progress: data.week.progress ?? {} };
     }
     data.previousMissions = data.previousMissions.map(withGoal);
+    data.clears = data.clears.map((c) => ({ ...c, progressBefore: c.progressBefore ?? 0 }));
     return data;
   } catch {
     return initialData;
