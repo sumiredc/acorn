@@ -10,10 +10,13 @@ import { colors, layout } from './theme';
 export function Screen({
   title,
   right,
+  overlay,
   children,
 }: {
-  title: string;
+  title?: string;
   right?: ReactNode;
+  // Drawn over the whole screen without taking touches, such as points flying across it.
+  overlay?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -23,13 +26,14 @@ export function Screen({
           <View style={styles.header}>
             <View style={styles.titleRow}>
               <Logo size={28} />
-              <PixelText style={styles.title}>{title}</PixelText>
+              {title && <PixelText style={styles.title}>{title}</PixelText>}
             </View>
             {right}
           </View>
           {children}
         </View>
       </ScrollView>
+      {overlay}
     </SafeAreaView>
   );
 }

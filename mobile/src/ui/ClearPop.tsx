@@ -1,25 +1,23 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import { Animated, Easing, Platform, StyleSheet, View } from 'react-native';
 
-import { colors, fonts } from './theme';
+import { colors } from './theme';
 
 const useNativeDriver = Platform.OS !== 'web';
 const SPARKS = 10;
 const SPARK_COLORS = [colors.acorn, colors.leaf, colors.sky, '#e0b13a'];
 
 // A short celebration for the card that was just cleared: it bounces once with a soft green
-// flash, pixel sparks fly out from the points, and "+Npt" floats up.
+// flash and pixel sparks fly out from the points.
 export function ClearPop({
   play,
   delay = 0,
-  pt,
   children,
 }: {
   // Changing it replays the celebration; null shows the card as is.
   play: number | null;
   // Milliseconds to wait first, such as for a closing window to fade out.
   delay?: number;
-  pt: number | null;
   children: ReactNode;
 }) {
   // Animated values live for the component's lifetime; useState keeps one instance per mount.
@@ -47,12 +45,12 @@ export function ClearPop({
     <Animated.View style={{ transform: [{ scale }] }}>
       {children}
       <Animated.View pointerEvents="none" style={[styles.flash, { opacity: flash }]} />
-      {play !== null && pt !== null && <Burst play={play} delay={delay} pt={pt} />}
+      {play !== null && <Burst play={play} delay={delay} />}
     </Animated.View>
   );
 }
 
-function Burst({ play, delay, pt }: { play: number; delay: number; pt: number }) {
+function Burst({ play, delay }: { play: number; delay: number }) {
   const [progress] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
@@ -105,19 +103,6 @@ function Burst({ play, delay, pt }: { play: number; delay: number; pt: number })
           />
         );
       })}
-      <Animated.Text
-        style={[
-          styles.gain,
-          {
-            opacity: fade,
-            transform: [
-              { translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [0, -30] }) },
-            ],
-          },
-        ]}
-      >
-        +{pt}pt
-      </Animated.Text>
     </View>
   );
 }
@@ -138,12 +123,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   spark: { position: 'absolute', width: 6, height: 6 },
-  gain: {
-    position: 'absolute',
-    fontFamily: fonts.pixel,
-    fontSize: 16,
-    color: colors.leaf,
-    width: 80,
-    textAlign: 'center',
-  },
 });

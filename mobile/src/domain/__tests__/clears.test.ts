@@ -1,4 +1,4 @@
-import { balance } from '../balance';
+import { balance, totalEarned } from '../balance';
 import { canRecord, canUndo, currentClear, nextUndoDeadline, UNDO_MS } from '../clears';
 import type { Clear, Mission, Reward, Week } from '../types';
 
@@ -67,6 +67,11 @@ describe('balance', () => {
     const clears = [clear('daily', '2026-10-20'), clear('weekly', '2026-10-21', { pt: 20 })];
     const rewards = [reward(8, 'redeemed'), reward(100, 'available')];
     expect(balance({ clears, rewards })).toBe(17);
+  });
+
+  it('keeps the total earned regardless of what was spent', () => {
+    const clears = [clear('daily', '2026-10-20'), clear('weekly', '2026-10-21', { pt: 20 })];
+    expect(totalEarned(clears)).toBe(25);
   });
 });
 

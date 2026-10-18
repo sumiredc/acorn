@@ -44,7 +44,7 @@ export const en = {
   'progress.save': 'Record',
   'progress.complete': 'All done',
 
-  'home.title': 'Home',
+  'home.total': 'Total',
   'home.greeting': 'Welcome back, {name}!',
   'home.missions': "This week's missions",
   'home.timeline': 'This week',

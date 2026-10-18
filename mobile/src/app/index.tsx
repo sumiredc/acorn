@@ -1,7 +1,8 @@
 import { Redirect } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { totalEarned } from '@/domain/balance';
 import { canUndo, currentClear, nextUndoDeadline } from '@/domain/clears';
 import { appNow, remainingTime } from '@/domain/clock';
 import { currentProgress, isCheckOnly, periodEnd } from '@/domain/progress';
@@ -13,9 +14,12 @@ import { useAcorn } from '@/storage/store';
 import { ClearPop } from '@/ui/ClearPop';
 import { ConfirmModal } from '@/ui/ConfirmModal';
 import { DemoClock } from '@/ui/DemoClock';
+import { type Flight, FlyingPoints } from '@/ui/FlyingPoints';
 import { IconButton } from '@/ui/IconButton';
 import { progressLabel } from '@/ui/missionText';
+import { measureInWindow, type ViewHandle } from '@/ui/measure';
 import { PixelIcon } from '@/ui/PixelIcon';
+import { PointCounter } from '@/ui/PointCounter';
 import { PixelText, Window } from '@/ui/primitives';
 import { ProgressBar } from '@/ui/ProgressBar';
 import { type InputMode, ProgressModal } from '@/ui/ProgressModal';
@@ -36,6 +40,12 @@ export default function HomeScreen() {
     key: number;
     delay: number;
   } | null>(null);
+  // Points on their way to the total. The total holds them back until they arrive, then
+  // counts up; `flight` stays null when the positions can't be measured.
+  const [pending, setPending] = useState<{ pt: number; flight: Flight | null } | null>(null);
+  const ptRefs = useRef(new Map<string, ViewHandle | null>());
+  const counterRef = useRef<ViewHandle>(null);
+  const overlayRef = useRef<ViewHandle>(null);
   // Real time as state, refreshed by the timers below. Reading Date.now() during render
   // would not refresh the screen, because the React Compiler memoizes the render.
   const [realNow, setRealNow] = useState(() => Date.now());
@@ -65,7 +75,31 @@ export default function HomeScreen() {
     // Saved from the record window: start once the window has faded out.
     const delay = recording ? 250 : 0;
     setCelebrating((prev) => ({ missionId: mission.id, key: (prev?.key ?? 0) + 1, delay }));
+    setPending({ pt: mission.pt!, flight: null });
+    launchPoints(mission, delay);
     toast(t(completes ? 'home.puzzleToast' : 'home.clearToast', { pt: mission.pt! }), 'success');
+  }
+
+  async function launchPoints(mission: Mission, delay: number) {
+    const [from, to, origin] = await Promise.all([
+      measureInWindow(ptRefs.current.get(mission.id)),
+      measureInWindow(counterRef.current),
+      measureInWindow(overlayRef.current),
+    ]);
+    if (!from || !to || !origin) {
+      setPending(null);
+      return;
+    }
+    setPending((prev) => ({
+      pt: mission.pt!,
+      flight: {
+        key: (prev?.flight?.key ?? 0) + 1,
+        pt: mission.pt!,
+        delay,
+        from: { x: from.x - origin.x, y: from.y - origin.y },
+        to: { x: to.x + to.width - 50 - origin.x, y: to.y - origin.y },
+      },
+    }));
   }
 
   function undo() {
@@ -82,7 +116,22 @@ export default function HomeScreen() {
   }
 
   return (
-    <Screen title={t('home.title')}>
+    <Screen
+      right={
+        <PointCounter
+          ref={counterRef}
+          label={t('home.total')}
+          value={totalEarned(data.clears) - (pending?.pt ?? 0)}
+        />
+      }
+      overlay={
+        <View ref={overlayRef} pointerEvents="none" style={StyleSheet.absoluteFill}>
+          {pending?.flight && (
+            <FlyingPoints flight={pending.flight} onArrive={() => setPending(null)} />
+          )}
+        </View>
+      }
+    >
       <PixelText style={styles.greeting}>{t('home.greeting', { name: data.userName! })}</PixelText>
       <Window title={t('home.timeline')}>
         <Timeline days={timelineDays(week, data.clears, at)} />
@@ -97,7 +146,6 @@ export default function HomeScreen() {
             key={m.id}
             play={celebrating?.missionId === m.id ? celebrating.key : null}
             delay={celebrating?.delay}
-            pt={m.pt}
           >
             <Window style={clear ? styles.cleared : undefined}>
               <View style={styles.header}>
@@ -108,7 +156,13 @@ export default function HomeScreen() {
                   label={t(`kind.${m.kind}`)}
                 />
                 <PixelText style={styles.name}>{m.name}</PixelText>
-                <PixelText style={styles.pt}>{m.pt}pt</PixelText>
+                <View
+                  ref={(el) => {
+                    ptRefs.current.set(m.id, el);
+                  }}
+                >
+                  <PixelText style={styles.pt}>{m.pt}pt</PixelText>
+                </View>
               </View>
               {!isCheckOnly(m) && (
                 <View style={styles.progressRow}>

@@ -46,7 +46,7 @@ export const ja: Dictionary = {
   'progress.save': '記録',
   'progress.complete': 'すべて完了',
 
-  'home.title': 'ホーム',
+  'home.total': '累計',
   'home.greeting': '{name}さん、おかえりなさい！',
   'home.missions': '今週のミッション',
   'home.timeline': '今週の記録',
