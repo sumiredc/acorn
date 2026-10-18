@@ -9,66 +9,66 @@ Build mode: fast
 
 ## Slices
 
-- [x] **1. API サーバーに聞くと、Jev が日本語のミッションと報酬を判定して pt を返す**
-  Becomes usable: `docker compose up` で API サーバーが起動する。`/judge/missions` と `/judge/reward` に実際の日本語の名前を送ると、実際の Jev の判定（確率分布つき）と換算した pt が返ってくる。
-  Why now: いちばん大きな不確定要素（SDK でのモデルの指定方法、Jev の日本語での判定の質、レスポンスの形）を、画面を作る前に確かめるため。核心である「AI が値付けする」部分そのものでもある。ここが崩れると、後のすべてが変わる。
-  PRD ref: `prd.md > ミッションとその pt`, `prd.md > 報酬とその価格（ショップ）`
+- [x] **1. Ask the API server, and Jev judges Japanese missions and rewards and returns pt**
+  Becomes usable: `docker compose up` starts the API server. Sending real Japanese names to `/judge/missions` and `/judge/reward` returns a real Jev judgement (with its probability distribution) and the converted pt.
+  Why now: To confirm the biggest unknowns (how to specify the model in the SDK, the quality of Jev's judgements in Japanese, the shape of the response) before building any screens. This is also the core itself: the part where "AI sets the prices." If this breaks, everything after it changes.
+  PRD ref: `prd.md > Missions and Their pt`, `prd.md > Rewards and Their Prices (Shop)`
   Spec ref: `spec.md > API Server`, `spec.md > Pricing Rules`, `spec.md > Judgement Keys`, `spec.md > Testability`, `spec.md > Static Analysis and CI`, `spec.md > External Services and Dependencies`
-  Build: uv で `api/` を作り、FastAPI・`typesafe-sdk`・pytest を入れる。`pricing.py`（区分 → pt）、`jev.py`（`jev-1.13.0` で Score / Choice を呼ぶ）、`schemas.py`、`main.py`（`/health`・`/judge/missions`・`/judge/reward`、CORS、失敗時は 502 `jev_failed`）を書く。答えは `Judgement Keys` にそろえる。Jev は依存性注入で差し替えられるようにする。ruff・mypy の設定、`Dockerfile`、`compose.yaml`、`.env.example`、`.github/workflows/ci.yml`（api ジョブ）を置く。
-  Verify (mechanical): `uv run ruff format --check .`・`uv run ruff check .`・`uv run mypy src`・`uv run pytest`（換算のテストと、偽の Jev を入れた窓口のテスト）がすべて通る。`docker compose up --build` のあと、`curl` で `/health` が 200 を返す。日本語と英語のミッション 3 件ずつと、報酬 2 件ずつ（値段のあるもの・値段のつけにくいもの）を送り、妥当な段階・区分と pt が返ることを確かめる。push して、self-hosted runner の CI（api ジョブ）が緑になることを確かめる。
-  Learner check: 用意した `curl` のコマンドに、自分で考えたミッション名と報酬名（日本語・英語）を入れて実行する。返ってきた難しさや価格帯が、自分の感覚と合っているかを見る。
+  Build: Create `api/` with uv and add FastAPI, `typesafe-sdk`, and pytest. Write `pricing.py` (category → pt), `jev.py` (calls Score / Choice with `jev-1.13.0`), `schemas.py`, and `main.py` (`/health`, `/judge/missions`, `/judge/reward`, CORS, 502 `jev_failed` on failure). Align the answers with `Judgement Keys`. Make Jev swappable through dependency injection. Add the ruff and mypy settings, `Dockerfile`, `compose.yaml`, `.env.example`, and `.github/workflows/ci.yml` (api job).
+  Verify (mechanical): `uv run ruff format --check .`, `uv run ruff check .`, `uv run mypy src`, and `uv run pytest` (conversion tests, and endpoint tests with a fake Jev) all pass. After `docker compose up --build`, `curl` gets 200 from `/health`. Send 3 missions each in Japanese and English, and 2 rewards each (one with a price, one hard to price), and confirm that reasonable levels/categories and pt come back. Push and confirm that CI on the self-hosted runner (api job) is green.
+  Learner check: Put your own mission names and reward names (Japanese and English) into the prepared `curl` commands and run them. See whether the difficulty and price ranges that come back match your own sense.
   Commit: `Add Jev-backed judge API for missions and rewards`
 
-- [x] **2. 予算とミッションを登録すると、Jev の採点がステータス画面に出る**
-  Becomes usable: ブラウザで Acorn を開くと、準備フロー（予算 → ミッション → 採点）が出る。デイリー最大 3 件・ウィークリー最大 1 件を登録して採点すると、各ミッションの pt と確率分布が RPG 風のステータス画面に表示される。リロードしても残る。失敗したらエラーと再試行が出る。表示は英語・日本語で、端末の設定に従い、アプリ内でも切り替えられる。
-  Why now: 核心（AI の採点）を画面で見られる最初の一歩。見た目の方向もここで決まるので、早めに触ってもらって、残りの作り方に反映させる。多言語は、あとから入れるとすべての画面を作り直すことになるため、画面の土台と同時に入れる。
-  PRD ref: `prd.md > The Core Journey`（1, 3, 4）, `prd.md > 予算`, `prd.md > ミッションとその pt`, `prd.md > States and Boundaries`, `prd.md > Look and Feel`, `prd.md > 言語`
-  Spec ref: `spec.md > Stack`, `spec.md > Store（保存とルールの入口）`, `spec.md > Store の更新（reducer）`, `spec.md > I18n`, `spec.md > Testability`, `spec.md > Static Analysis and CI`, `spec.md > Domain（ゲームのルール、純粋な関数）`, `spec.md > API Client`, `spec.md > Screens`, `spec.md > UI Parts`, `spec.md > Look and Feel`, `spec.md > Data Model`
-  Build: `mobile/` に Expo SDK 57（Expo Router、TypeScript）を作り、AsyncStorage・DotGothic16・expo-localization・jest-expo・Prettier・ESLint を入れる。`theme.ts`・`Window`・`StatusDistribution`、`clock.ts`・`week.ts`（件数チェック）・`setup.ts`、`reducer.ts`・`store.ts`（`acorn:v1`）、`i18n/`（en・ja・言語の決定と切り替え）、`api/client.ts`、`setup.tsx`（予算・ミッション・採点・エラーと再試行）を書く。`index.tsx` は採点済みのミッションと pt を並べるだけの最小の形にし、言語の切り替えを置く。CI に mobile ジョブを足す。
-  Verify (mechanical): `npx prettier --check .`・`npx expo lint`・`npx tsc --noEmit`・`npx jest`（件数チェック、準備フローの次のステップ、reducer の予算・ミッション・採点結果の反映・採点失敗、言語の決定、API Client の成功と失敗）が通る。`npx expo export -p web` が成功する。API サーバーと `npx expo start --web` を起動し、`curl` でページが 200 を返すことを確かめる。push して、CI の api と mobile のジョブが緑になることを確かめる。
-  Learner check: ブラウザ（モバイル表示）で http://localhost:8081 を開き、予算と自分のミッションを入れて採点する。ステータス画面の見た目と、Jev の判定が「Acorn らしい」かを見る。言語を切り替えてみて、感想を伝える。API サーバーを止めて、エラーと再試行が出ることも見る。
+- [x] **2. Register a budget and missions, and Jev's scoring appears on the status screen**
+  Becomes usable: Opening Acorn in a browser shows the setup flow (budget → missions → scoring). Register up to 3 daily and up to 1 weekly mission and score them, and each mission's pt and probability distribution appear on an RPG-style status screen. They remain after a reload. On failure, an error and a retry appear. The display is in English or Japanese, follows the device setting, and can also be switched in the app.
+  Why now: The first step where the core (AI scoring) can be seen on screen. The visual direction is also decided here, so the learner should try it early and their feedback should shape how the rest is built. Multiple languages go in together with the screen foundation, because adding them later would mean reworking every screen.
+  PRD ref: `prd.md > The Core Journey` (1, 3, 4), `prd.md > Budget`, `prd.md > Missions and Their pt`, `prd.md > States and Boundaries`, `prd.md > Look and Feel`, `prd.md > Language`
+  Spec ref: `spec.md > Stack`, `spec.md > Store (Saving and the Entry Point for Rules)`, `spec.md > Store Updates (Reducer)`, `spec.md > I18n`, `spec.md > Testability`, `spec.md > Static Analysis and CI`, `spec.md > Domain (Game Rules as Pure Functions)`, `spec.md > API Client`, `spec.md > Screens`, `spec.md > UI Parts`, `spec.md > Look and Feel`, `spec.md > Data Model`
+  Build: Create Expo SDK 57 (Expo Router, TypeScript) in `mobile/` and add AsyncStorage, DotGothic16, expo-localization, jest-expo, Prettier, and ESLint. Write `theme.ts`, `Window`, `StatusDistribution`, `clock.ts`, `week.ts` (count checks), `setup.ts`, `reducer.ts`, `store.ts` (`acorn:v1`), `i18n/` (en, ja, choosing and switching the language), `api/client.ts`, and `setup.tsx` (budget, missions, scoring, error and retry). Keep `index.tsx` minimal, just listing the scored missions and their pt, and put the language switch there. Add a mobile job to CI.
+  Verify (mechanical): `npx prettier --check .`, `npx expo lint`, `npx tsc --noEmit`, and `npx jest` (count checks, the next step of the setup flow, the reducer applying budget, missions, and scoring results, scoring failure, choosing the language, API Client success and failure) pass. `npx expo export -p web` succeeds. Start the API server and `npx expo start --web`, and confirm with `curl` that the page returns 200. Push and confirm that the CI api and mobile jobs are green.
+  Learner check: Open http://localhost:8081 in a browser (mobile view), enter a budget and your own missions, and score them. See whether the status screen's look and Jev's judgements feel "like Acorn." Switch the language and share your impressions. Also stop the API server and see that an error and a retry appear.
   Commit: `Add setup flow with Jev mission scoring status screen`
 
-- [x] **3. ホームでミッションをクリアして pt が貯まり、日を進められる**
-  Becomes usable: ホームに残高、月〜日のタイムライン、今週のミッションが並ぶ。クリアすると pt が残高に加わり、30 分以内なら取り消せる（残高が足りないときは取り消せない）。「日を進める」で次の日になり、デイリーがまたクリアできる。
-  Why now: 稼ぐ側のループが閉じる。毎日のループが見えて、デモの前半が成り立つ。
-  PRD ref: `prd.md > ホームのタイムライン`, `prd.md > クリアと取り消し`, `prd.md > デモ用の時間操作`
-  Spec ref: `spec.md > Domain（ゲームのルール、純粋な関数）`, `spec.md > Screens`, `spec.md > UI Parts`, `spec.md > Data Model`
-  Build: 回数・時間のミッションの進み具合の記録（目標に届いたらクリア）、`clears.ts`・`balance.ts` と `clock.ts` の時間のずらしを書く。`index.tsx`（残高・タイムライン・クリア / 取り消し）、`Timeline`、`DemoClock`（「日を進める」）、`_layout.tsx` のナビとトーストを作る。
-  Verify (mechanical): 静的解析（prettier・lint・tsc）と `npx jest`（デイリーは 1 日 1 回・ウィークリーは週 1 回、採点前はクリアできない、30 分の取り消し、残高不足では取り消せない、残高の計算、日を進めたあとの日付と取り消しの期限、タイムラインの表示データ）が通る。`npx expo export -p web` が成功する。CI が緑になる。
-  Learner check: ホームでミッションをクリアし、取り消してみる。「日を進める」を何回か押して、タイムラインと残高の動きを見る。
+- [x] **3. Clear missions on the home screen to collect pt, and advance the day**
+  Becomes usable: The home screen shows the balance, a Monday-to-Sunday timeline, and this week's missions. Clearing a mission adds its pt to the balance, and it can be undone within 30 minutes (it cannot be undone when the balance is too low). "Next day" moves to the next day, and daily missions can be cleared again.
+  Why now: Closes the earning loop. The daily loop becomes visible, and the first half of the demo works.
+  PRD ref: `prd.md > Home Timeline`, `prd.md > Clearing and Undo`, `prd.md > Demo Time Controls`
+  Spec ref: `spec.md > Domain (Game Rules as Pure Functions)`, `spec.md > Screens`, `spec.md > UI Parts`, `spec.md > Data Model`
+  Build: Write progress recording for count and time missions (cleared when the target is reached), `clears.ts`, `balance.ts`, and the time offset in `clock.ts`. Build `index.tsx` (balance, timeline, clear / undo), `Timeline`, `DemoClock` ("Next day"), and the navigation and toasts in `_layout.tsx`.
+  Verify (mechanical): Static analysis (prettier, lint, tsc) and `npx jest` (dailies once a day and weeklies once a week, no clearing before scoring, 30-minute undo, no undo with an insufficient balance, balance calculation, the date and undo deadline after advancing the day, the timeline's display data) pass. `npx expo export -p web` succeeds. CI is green.
+  Learner check: Clear a mission on the home screen and try undoing it. Press "Next day" a few times and watch how the timeline and the balance change.
   Commit: `Add home timeline with clears, undo, and day advance`
 
-- [x] **4. ショップで報酬を登録すると Jev が値付けし、pt で交換できる**
-  Becomes usable: ショップで報酬名を入れると、Jev が価格（pt）と分布を出す。残高が足りれば交換でき、「交換済み」になる。足りなければ交換ボタンは押せない。準備フローの報酬ステップ（報酬が 0 件のとき、最大 5 件）も動く。
-  Why now: 使う側のループを閉じて、核心の両輪（稼ぐ・使う）がそろう。登録 → 採点 → クリア → 交換、の 1 周がこれで成り立つ。
-  PRD ref: `prd.md > 報酬とその価格（ショップ）`, `prd.md > The Core Journey`（2, 6）, `prd.md > States and Boundaries`（残高不足）
-  Spec ref: `spec.md > Screens`, `spec.md > Domain（ゲームのルール、純粋な関数）`, `spec.md > Pricing Rules`, `spec.md > Important Failure Modes`
-  Build: `shop.tsx`（一覧・価格・分布・交換・追加・最大 5 件、交換済みは数えない）、`setup.tsx` の報酬ステップ、保存直前の残高の再確認と「pt が たりない！」のトーストを作る。報酬の判定に失敗したときのエラーと再試行も付ける。
-  Verify (mechanical): 静的解析と `npx jest`（交換できるかの判定、5 件の上限で交換済みを数えない、残高不足での交換の拒否、reducer の報酬の追加と交換、準備フローの報酬ステップ、区分名の辞書）が通る。`npx expo export -p web` が成功する。実際の API に `curl` で報酬を送り、アプリが受け取る形と一致することを確かめる。CI が緑になる。
-  Learner check: 「ヘッドホン」のような値段のある報酬と、値段のつけにくい報酬を登録して、Jev の値付けが納得できるかを見る。1 つ交換してみる。
+- [x] **4. Register a reward in the shop, Jev prices it, and it can be redeemed with pt**
+  Becomes usable: Entering a reward name in the shop makes Jev produce a price (pt) and distribution. If the balance is enough, it can be redeemed and becomes "Redeemed." If not, the redeem button cannot be pressed. The reward step of the setup flow (when there are 0 rewards, up to 5) also works.
+  Why now: Closes the spending loop, completing both halves of the core (earning and spending). With this, one full cycle works: register → score → clear → redeem.
+  PRD ref: `prd.md > Rewards and Their Prices (Shop)`, `prd.md > The Core Journey` (2, 6), `prd.md > States and Boundaries` (insufficient balance)
+  Spec ref: `spec.md > Screens`, `spec.md > Domain (Game Rules as Pure Functions)`, `spec.md > Pricing Rules`, `spec.md > Important Failure Modes`
+  Build: Build `shop.tsx` (list, price, distribution, redeem, add, up to 5, redeemed ones not counted), the reward step in `setup.tsx`, and a recheck of the balance right before saving with a "Not enough pt!" toast. Also add an error and a retry for when judging a reward fails.
+  Verify (mechanical): Static analysis and `npx jest` (whether a reward can be redeemed, the 5-reward limit not counting redeemed ones, refusing redemption with an insufficient balance, the reducer adding and redeeming rewards, the reward step of the setup flow, the dictionary of category names) pass. `npx expo export -p web` succeeds. Send a reward to the real API with `curl` and confirm that the response matches the shape the app expects. CI is green.
+  Learner check: Register a reward that has a price, like "Headphones," and one that is hard to price, and see whether Jev's pricing makes sense. Redeem one.
   Commit: `Add shop with Jev reward pricing and redemption`
 
-- [x] **5. 週を進めると週がリセットされ、ミッションを引き継いで採点し直せる**
-  Becomes usable: 「週を進める」（または新しい週に初めて開いたとき）で週がリセットされ、準備フローが出る。先週のミッションを引き継げて、進捗は 0 から、Jev が採点し直す。残高はそのまま。
-  Why now: 毎週の「為替」の動きと、デモ用の時間操作がそろい、PRD の 1 周（7 番目のステップ）が完成する。前の各スライスに依存するので最後に置く。
-  PRD ref: `prd.md > 週のリセット`, `prd.md > デモ用の時間操作`, `prd.md > The Core Journey`（7）
-  Spec ref: `spec.md > Domain（ゲームのルール、純粋な関数）`, `spec.md > Data Model`, `spec.md > Store（保存とルールの入口）`
-  Build: `week.ts` の週の切り替え（`previousMissions` への移動）、起動時と時間操作のあとの判定、`setup.tsx` の引き継ぎの選択、`DemoClock` の「週を進める」を作る。
-  Verify (mechanical): 静的解析と `npx jest`（月曜の境界、数週飛んだ場合、引き継いでも進捗はリセット、残高は残る、週を進める操作、起動時の週の判定）が通る。`npx expo export -p web` が成功する。CI が緑になる。
-  Learner check: 「週を進める」を押して、ミッションを引き継ぎ、採点し直された pt を先週と比べる。残高が残っていることを確かめる。
+- [x] **5. Advancing the week resets it, and missions can be carried over and rescored**
+  Becomes usable: "Next week" (or opening the app for the first time in a new week) resets the week and shows the setup flow. Last week's missions can be carried over; progress starts from 0 and Jev rescores them. The balance stays as it is.
+  Why now: Brings together the weekly "exchange rate" movement and the demo time controls, completing one full cycle of the PRD (the 7th step). It depends on every earlier slice, so it comes last.
+  PRD ref: `prd.md > Weekly Reset`, `prd.md > Demo Time Controls`, `prd.md > The Core Journey` (7)
+  Spec ref: `spec.md > Domain (Game Rules as Pure Functions)`, `spec.md > Data Model`, `spec.md > Store (Saving and the Entry Point for Rules)`
+  Build: Build the week switch in `week.ts` (moving to `previousMissions`), the check at startup and after time controls, the carry-over choice in `setup.tsx`, and "Next week" in `DemoClock`.
+  Verify (mechanical): Static analysis and `npx jest` (the Monday boundary, skipping several weeks, progress reset even when carried over, balance kept, the advance-week action, the week check at startup) pass. `npx expo export -p web` succeeds. CI is green.
+  Learner check: Press "Next week," carry over missions, and compare the rescored pt with last week's. Confirm that the balance remains.
   Commit: `Add weekly reset with mission carry-over and week advance`
 
 ## Hands-on Checkpoints
 
-- [x] Early usable behavior explored — スライス 2 のあと（ステータス画面の見た目と、Jev の採点の感触）。スライス 2・3 のあとに学習者が実際に触り、多くの変更を決めた（Revisions を参照）
+- [x] Early usable behavior explored — after slice 2 (the look of the status screen and the feel of Jev's scoring). The learner actually used the app after slices 2 and 3 and decided on many changes (see Revisions)
 - [x] Final kick-the-tires exploration and feedback completed
 
 ## Final Review
 
-- [x] クリアしたときのトースト（「ミッションクリア！」「今日のパズル完成！」）を出さない
-- [x] 設定画面（名前と言語の変更）を作る
-- [x] ホームの右上を、累計ではなく手持ちのどんぐり（交換すると減る）にする
+- [x] Do not show toasts on clearing ("Mission cleared!", "Today's puzzle complete!")
+- [x] Build a settings screen (change name and language)
+- [x] Make the top right of the home screen show acorns on hand (which go down when redeeming) instead of total earned
 - [x] Final review complete — feedback resolved and learner confirms ready to ship
 
 ## Code Tour and App Map
@@ -77,42 +77,42 @@ Build mode: fast
 - [x] Optional edit and transfer reflection addressed — offered/declined/already covered/not applicable as appropriate
 - [x] `devpost/app-map.html` generated from finished code, checked, and shown, including a project-grounded practice to reuse
 
-Activity and evidence: 計画に慣れた学習者向けの短い振り返り（focused alternative の recap）。題材は最終確認での実際の出来事：ホーム右上の「累計」から説明の文字を外したため、交換しても減らない数が手持ちに見えた。テスト（`totalEarned`）は通っていたが、実際に操作して初めて分かり、`balance` の表示に変えた（`d4cc6b8`）。
-Route and stops: 参考ルート（一緒にはたどっていない）：`mobile/src/app/index.tsx` › `record` → `mobile/src/storage/reducer.ts` › `recordProgress` → `mobile/src/domain/balance.ts` › `balance`。app-map.html に掲載。
-Edit outcome: 該当なし（最終確認の 3 つの修正を学習者が自分で確かめたため、追加の小さな編集は出さなかった）。
-Reflection: 振り返りの質問を出し、学習者が答えた（内容は learner-profile.md に記録）。
-Activity mode: fast モード。短い振り返り + アプリマップ。
+Activity and evidence: A short recap for a learner used to planning (the focused alternative's recap). The subject was a real event from the final review: after the explanatory label was removed from the "Total earned" number at the top right of the home screen, a number that does not go down when redeeming looked like acorns on hand. The tests (`totalEarned`) passed, but the problem only showed up when actually using the app, and the display was changed to `balance` (`d4cc6b8`).
+Route and stops: Reference route (not walked through together): `mobile/src/app/index.tsx` › `record` → `mobile/src/storage/reducer.ts` › `recordProgress` → `mobile/src/domain/balance.ts` › `balance`. Included in app-map.html.
+Edit outcome: Not applicable (the learner verified the 3 fixes from the final review themselves, so no additional small edit was offered).
+Reflection: A reflection question was asked and the learner answered it (the content is recorded in learner-profile.md).
+Activity mode: Fast mode. Short recap + app map.
 
 ## Revisions
-- 英語・日本語の多言語対応を追加（スライス 2 から辞書を通す）— 計画の承認時に、学習者が追加を決めた。
-- 機械的な確認から Playwright（E2E）を外し、静的解析とユニットテストに置き換えた。ルールを reducer と domain の純粋な関数に寄せた — 学習者の判断：E2E は今は不要で、ユニットテストしやすい粒度に分ける。
-- self-hosted runner の CI（formatter・linter・型検査・ユニットテスト）を追加し、スライスごとに push して緑を確かめる。runner は実装の前に aidd-infra が用意する（ARC の `arc-runner-acorn`。Node と uv はジョブ内で setup する。Docker は使えない）— 学習者の判断。
-- Expo を SDK 57 から 58（React Native 0.88、React 19.3）に変更 — `create-expo-app` の最新テンプレートが SDK 58 だった。学習者が選んだ Expo / React Native はそのまま。
-- 画面のファイルを `mobile/app/` ではなく `mobile/src/app/` に置き、Store は JSX を含むため `store.tsx` にした — SDK 58 のテンプレートと Expo Router の慣例に合わせた。spec の File Structure の `mobile/app/...` は `mobile/src/app/...` と読み替える。
-- `compose.yaml` の CORS の許可元を `ACORN_CORS_ORIGINS` で上書きできるようにした — この Mac では 8081 番が別のプロジェクトの開発サーバーに使われていたため、8082 番でも動かせるようにした。
-- スライス 2 のあとの確認で、学習者が次を決めた：日本語はひらがな表記をやめて普通の漢字かな交じりに。画面に「Jev」の名前を出さず「ポイントを決める」と言う。言語はアプリ内で切り替えず、最初の画面で選ぶ（端末の言語が初期値）。採点は別の画面に移らず、ボタンが送信中になり、失敗はトーストで出す（週の状態から「採点中」をなくした）。最初に名前を入れ、ホームであいさつする。🌰 の絵文字をやめ、ドット絵のどんぐりのロゴとアプリのアイコンを作る。prd.md と spec.md を合わせて更新した。
-- 同じ確認で、選ぶ操作（言語、デイリー / ウィークリー、単位）を「▶」付きのボタンから、選択肢の並び（Choice）に変えた。「▶」は前に進む操作（横幅いっぱいのボタン）だけに付ける。主な操作は窓の外に置く — 学習者の指摘：進むボタンかどうか分かりづらい。
-- ミッションに目標の単位（なし・回数・時間）を追加した。API の `/judge/missions` も unit と target を受け取り、Jev に目標を渡す。進み具合とクリアはスライス 3 で作る — 学習者が追加を決めた。単位を増やすと複雑になるため 3 種類に絞り、距離などは名前に含める。
-- 同じ確認で：名前と予算の説明文（あいさつに使う、1pt ≒ $1）を削った。単位の「なし」は「目標なし」に見えるため「進捗率」に変え（目標は 100%）、見出しを「記録のしかた」にした。件数の説明文をやめて空きスロット（デイリー 3、ウィークリー 1）で見せ、登録はモーダルで確定する形にした — 学習者の指摘：追加を押さずに次へ進んでしまいそう。
-- スライス 3 の実装中に、学習者が進み具合の入れ方を決めた：ボタン・バー・数値を入力中に切り替えられる。刻みは進捗率 10%、回数・時間は目標 ≤20 → 1、≤50 → 5、それ以上 → 10。すべての記録のしかたに「すべて完了」を置く。誤タップでクリアにならないよう、入力は記録の窓で下書きして「記録」で確定する形にした（AI の判断）。取り消すと進み具合はクリア直前の値に戻すため、`Clear` に `progressBefore` を、`Week` に `progress` を足した。prd.md と spec.md を合わせて更新した。
-- 「日を進める」はスライス 4 でナビを作るまで、ホームの下に置いた（spec では `_layout.tsx`）。週の切り替えはスライス 5 なので、それまでは日曜から「日を進める」と今週のタイムラインから今日が外れる。
-- スライス 3 のあとの確認で、学習者が次を決めた：記録の窓の入れ方の切り替えは、上の大きな選択肢から、下の小さなアイコンに変えた。窓の中の読み取り専用のバーは外し、数値入力は中央寄せ。「すべて完了」はアイコンにし、押すと値が目標になるだけで、保存は「記録」で行う。ホームのミッションから難しさの分布と「[デイリー]」の文字を外し、アイコンで示す。期限までの残り時間（1 時間未満は分、それ以上は時間）を小さく出す。タイムラインはデイリーのクリア数だけを GitHub の草のような濃さで示し、ウィークリーの★は外した。prd.md と spec.md を合わせて更新した。
-- 続く確認で、学習者が次を決めた：記録の窓のボタン・バー・数値入力を同じ高さにし（切り替えても配置が動かない）、「すべて完了」を入力欄の右に移した。ホームから残高を外した（「残高」という言葉も避ける。ショップでの見せ方はスライス 4 で決める）。タイムラインは色の濃さをやめ、デイリーの数のピースに分けたドット絵のパズルを埋める形にした。prd.md と spec.md を合わせて更新した。
-- 続く確認で：取り消せなくなった時点で取り消しボタンを消すようにした（学習者の指摘で、ボタンが 30 分を過ぎても残ることがわかった）。原因は React Compiler（`app.json` の `reactCompiler`）で、描画の中で現在時刻を読んでも描画結果が使い回されていた。ホームは現在時刻を state で持ち、1 分ごとと取り消しの期限ちょうどに更新する。パズルの境界線は外した。残高はショップ（購入画面）でだけ見せる — 学習者の判断。マイページは PoC の範囲外のため作らない。
-- 続く確認で、学習者が次を決めた：ミッションの確定ボタンを「ポイントを決める」から「登録」に変えた。準備画面の削除はゴミ箱のアイコンにし、確認の窓を出す。目標の入力欄は中央寄せ。ホームのミッション名の横の目標（「1回」など）は進み具合の表示と重なるので外した。prd.md と spec.md を合わせて更新した。
-- 同じ確認の実装中に、React Compiler が `removing!.id` のようなクロージャ内のプロパティ参照を描画中に読み、null で落ちることがわかった。null を確かめてから読む関数に書き直した。
-- 続く確認で、学習者が次を決めた：タイムラインの今日の列を目立たせる（列の背景、曜日を反転、枠をどんぐり色に）。目標が 1 のミッションは、バーと記録の窓をやめ、「完了」のチェックボタン 1 つでクリアする。prd.md と spec.md を合わせて更新した。
-- 続く確認で、学習者が次を決めた：取り消しの前に確認の窓を出す。記録の窓とミッション追加の窓からキャンセルボタンを外し、窓の外のタップか右上の × で閉じる（共通の `Sheet` にまとめた）。「記録」ボタンを ✓ のアイコンにした。確認の窓（削除・取り消し）は、はい / いいえを選ぶ問いなのでキャンセルボタンを残した（AI の判断。× と窓の外でも閉じられる）。prd.md を合わせて更新した。
-- 続く確認で、学習者が次を決めた：ホームの「記録する」「取り消す」「完了」をアイコンボタン（鉛筆・戻る矢印・チェック欄）にした。読み上げ用のラベルは元の文言のまま。prd.md を合わせて更新した。
-- 続く確認で、学習者が次を決めた：鉛筆のアイコンが分かりづらいので、9×9 の輪郭線の鉛筆に描き直した（アイコンは 7×7 のほか、同じドットの大きさで大きい格子も使える）。クリアの演出を、病みつきになるが派手すぎない程度に強めた：カードが弾んで淡く光る、pt から火花が散り「+Npt」が浮かぶ、その日のパズルが完成したら「今日のパズル完成！」のトースト（パズル完成の一言は AI の提案）。記録の窓から保存したときは、窓が閉じてから演出を始める。prd.md と spec.md を合わせて更新した。
-- 続く確認で、学習者が次を決めた：ホームの「ホーム」の文字を外し、右上に累計ポイント（稼いだ pt の合計。残高とは別で、交換しても減らない）を出す。クリアすると「+Npt」がカードから累計まで弧を描いて飛び、届いてから累計が数え上がる。カードの中で浮かんでいた「+Npt」はこの演出に置き換えた。prd.md と spec.md を合わせて更新した。
-- 続く確認で、学習者が次を決めた：累計へ飛ぶ「+Npt」に火花の尾を付け、累計に届いたときも火花を散らす。火花は共通の `Sparks` にまとめた。prd.md を合わせて更新した。
-- 続く確認で、学習者が次を決めた：累計へ飛ぶ「+Npt」の軌道を、左へふくらんで右へ曲がる弧（二次ベジェ曲線）にした。ホームのミッションは、まだのものを上、クリアしたものを下に並べる。クリアしたカードは pt が累計に届くまで元の位置に残してから下へ移す（AI の判断：演出がその場で見えるように）。prd.md を合わせて更新した。
-- 続く確認で、学習者が次を決めた：ミッションの確率分布は画面に出さないままにする。残り時間は 1 日以上なら「あと○日○時間」。pt を画面では「どんぐり」として、ドット絵のどんぐりと数字で見せ、文章では「どんぐりを○個」と数える（「1 AC」は案として出たが採らなかった）。アイコンの横は数字だけ（×は付けない）、右上の見出しは「累計」のまま（AI の判断。学習者の答え待ち）。データと API の名前は `pt` のまま。prd.md と spec.md を合わせて更新した。
-- 続く確認で、学習者が次を決めた：ホームの左上のロゴと、右上の「累計」の文字を外した（右上はどんぐりと数字だけ）。準備画面のロゴは残した。prd.md を合わせて更新した。
-- スライス 4 の実装で（AI の判断、学習者の確認待ち）：報酬は画面で「ごほうび」と呼ぶ。ショップのカードには確率分布の棒を出さず、価格（どんぐり）と選ばれた価格帯・期間の名前だけを出す（ミッションの分布を外した学習者の判断に合わせた）。ショップの右上の残高には「手持ち」と添える（ホームの累計と区別するため）。交換の前に確認の窓を出す。ホームとショップは画面下のタブで切り替え、`router.replace` で画面が積み重ならないようにした。デモ用の時間操作はホームの下のまま。大きな数は 3 桁ごとに区切る（30,000）。prd.md と spec.md を合わせて更新した。
-- スライス 4 のあとの確認で、学習者が次を決めた：ショップの画面名とタブを「ごほうび」に変え、見出しの「ごほうび」と右上の「手持ち」の文字を外した。カードの実際の金額（価格帯）は出さない。報酬の価格を 1.3 倍にした（「1.2〜1.5 倍くらい」から真ん中寄りを AI が選んだ。`api/src/acorn_api/pricing.py` の `REWARD_MARKUP`）。登録済みの報酬の価格は変わらない（価格は登録時に決まる）。カードは交換ボタンを名前・価格と同じ行に置いた。prd.md と spec.md を合わせて更新した。
-- スライス 5 の実装で（AI の判断）：引き継ぎはチェックボックスではなく、「先週のミッション」の各行の「引き継ぐ」ボタンにした（押すとすぐ今週の空きに入り、枠がいっぱいなら押せない）。引き継いだミッションは新しい id で作る。「週を進める」は次の月曜の同じ時刻にする。アプリを開いたまま月曜になった場合に備えて、ホームが 1 分ごとに週を確かめる。prd.md と spec.md を合わせて更新した。
-- 最終確認で、学習者が次を決めた：クリアのトーストを外した。名前と言語を変える設定画面を加えた（スライス 2 のあとに外した言語の切り替えを、ここで戻した）。設定画面の入口は画面下の 3 つ目のタブ（歯車のアイコン）、名前は「保存」ボタンで確定、言語は選んだ瞬間に切り替える（いずれも AI の判断）。prd.md と spec.md を合わせて更新した。
-- 最終確認で、学習者が次を決めた：ホームの右上を累計から手持ちのどんぐり（残高）に変えた。交換してホームに戻っても数が減らず、分かりにくかったため（以前の「ホームに残高を出さない」「右上は累計」を改めた）。累計はどこにも出さなくなった。prd.md と spec.md を合わせて更新した。
-- 公開の準備で、学習者が次を決めた：CI を自宅の k8s の self-hosted runner から GitHub の `ubuntu-latest` に移した。公開リポジトリでは、誰でも出せるプルリクエストのコードが self-hosted runner で動いてしまうため。spec.md を合わせて更新した。
+- Added English and Japanese multi-language support (all text goes through the dictionary from slice 2) — the learner decided to add it when approving the plan.
+- Removed Playwright (E2E) from the mechanical checks and replaced it with static analysis and unit tests. Moved the rules into pure functions in the reducer and domain — learner's decision: E2E is not needed for now; split things into a granularity that is easy to unit test.
+- Added CI on a self-hosted runner (formatter, linter, type check, unit tests), pushing after each slice to confirm it is green. The runner is prepared by aidd-infra before implementation (ARC's `arc-runner-acorn`. Node and uv are set up inside the job. Docker is not available) — learner's decision.
+- Changed Expo from SDK 57 to 58 (React Native 0.88, React 19.3) — the latest `create-expo-app` template was SDK 58. Expo / React Native, as chosen by the learner, stay the same.
+- Put the screen files in `mobile/src/app/` instead of `mobile/app/`, and named the Store `store.tsx` because it contains JSX — to match the SDK 58 template and Expo Router conventions. Read `mobile/app/...` in the spec's File Structure as `mobile/src/app/...`.
+- Made the allowed CORS origins in `compose.yaml` overridable with `ACORN_CORS_ORIGINS` — port 8081 on this Mac was used by another project's dev server, so the app can also run on port 8082.
+- In the review after slice 2, the learner decided the following: Japanese stops using hiragana-only spelling and uses ordinary mixed kanji and kana. The screens do not show the name "Jev" and say "Set points" instead. The language is not switched in the app but chosen on the first screen (the device language is the default). Scoring does not move to a separate screen; the button shows a sending state, and failures appear as a toast (the "scoring" state was removed from the week's states). The learner enters a name first, and the home screen greets them. The 🌰 emoji is dropped, and a pixel-art acorn logo and app icon are made. Updated prd.md and spec.md to match.
+- In the same review, the choosing controls (language, daily / weekly, unit) were changed from buttons with "▶" to a row of options (Choice). "▶" is used only on actions that move forward (full-width buttons). Main actions are placed outside the windows — learner's point: it was hard to tell whether something was a forward button.
+- Added a target unit to missions (none, count, time). The API's `/judge/missions` also accepts unit and target and passes the target to Jev. Progress and clearing are built in slice 3 — the learner decided to add this. More units add complexity, so it is limited to 3 kinds, and things like distance go in the name.
+- In the same review: removed the explanatory text for the name and budget (used for the greeting, 1pt ≒ $1). The unit "None" looked like "no target," so it was changed to "Progress %" (target is 100%), and the heading became "Track by." Instead of explaining the counts in text, empty slots show them (3 daily, 1 weekly), and registration is confirmed in a modal — learner's point: people might move on to the next step without pressing add.
+- During slice 3, the learner decided how to enter progress: buttons, a bar, or a number, switchable while entering. Steps are 10% for progress %, and for count and time: target ≤20 → 1, ≤50 → 5, above that → 10. Every tracking method has "All done." To avoid clearing by mis-tap, input is drafted in the record window and confirmed with "Record" (AI's decision). Undo returns progress to its value right before the clear, so `progressBefore` was added to `Clear` and `progress` to `Week`. Updated prd.md and spec.md to match.
+- "Next day" was placed under the home screen until the navigation is built in slice 4 (in the spec it is in `_layout.tsx`). The week switch comes in slice 5, so until then, using "Next day" from Sunday takes today out of this week's timeline.
+- In the review after slice 3, the learner decided the following: switching the input method in the record window changed from large options at the top to small icons at the bottom. The read-only bar inside the window was removed, and the number input is centered. "All done" became an icon; pressing it only sets the value to the target, and saving happens with "Record." The difficulty distribution and the "[Daily]" text were removed from the missions on the home screen and shown with icons instead. The time left until the deadline is shown in small text (minutes when under 1 hour, hours otherwise). The timeline shows only the number of daily clears, with shades like GitHub's contribution graph, and the weekly ★ was removed. Updated prd.md and spec.md to match.
+- In the next review, the learner decided the following: the buttons, bar, and number input in the record window are the same height (the layout does not shift when switching), and "All done" moved to the right of the input. The balance was removed from the home screen (the word "balance" is also avoided; how to show it in the shop is decided in slice 4). The timeline dropped color shades and instead fills in a pixel-art puzzle split into as many pieces as there are dailies. Updated prd.md and spec.md to match.
+- In the next review: the undo button is now removed as soon as undo is no longer possible (the learner pointed out that the button stayed after 30 minutes). The cause was the React Compiler (`reactCompiler` in `app.json`): even though the current time was read during rendering, the render result was reused. The home screen keeps the current time in state and updates it every minute and exactly at the undo deadline. The puzzle's borders were removed. The balance is shown only in the shop (the purchase screen) — learner's decision. A my-page screen is not built because it is outside the PoC scope.
+- In the next review, the learner decided the following: the mission confirm button changed from "Set points" to "Register." Deleting on the setup screen uses a trash icon and shows a confirmation window. The target input is centered. The target next to the mission name on the home screen ("1 times" and so on) overlapped the progress display, so it was removed. Updated prd.md and spec.md to match.
+- While implementing the same review, it turned out that the React Compiler reads property references inside closures, like `removing!.id`, during rendering and crashes on null. They were rewritten as functions that check for null before reading.
+- In the next review, the learner decided the following: today's column in the timeline stands out (column background, inverted weekday, acorn-colored border). Missions with a target of 1 drop the bar and the record window and are cleared with a single "Done" check button. Updated prd.md and spec.md to match.
+- In the next review, the learner decided the following: a confirmation window appears before undo. The cancel buttons were removed from the record window and the add-mission window; they close by tapping outside the window or the × at the top right (combined into a shared `Sheet`). The "Record" button became a ✓ icon. Confirmation windows (delete, undo) keep their cancel button because they ask a yes / no question (AI's decision. They can also be closed with × or by tapping outside). Updated prd.md to match.
+- In the next review, the learner decided the following: "Record," "Undo," and "Done" on the home screen became icon buttons (pencil, back arrow, checkbox). The labels for screen readers keep the original wording. Updated prd.md to match.
+- In the next review, the learner decided the following: the pencil icon was hard to read, so it was redrawn as a 9×9 outlined pencil (besides 7×7, icons can also use a larger grid with the same dot size). The clear effect was made stronger, addictive but not too flashy: the card bounces and glows softly, sparks fly from the pt and "+Npt" floats up, and when that day's puzzle is complete a "Today's puzzle complete!" toast appears (the puzzle-complete line is AI's suggestion). When saving from the record window, the effect starts after the window closes. Updated prd.md and spec.md to match.
+- In the next review, the learner decided the following: the "Home" text was removed from the home screen, and total earned points (the sum of pt earned; separate from the balance and does not go down when redeeming) appear at the top right. On a clear, "+Npt" flies in an arc from the card to the total earned, and the total counts up after it arrives. This effect replaced the "+Npt" that floated inside the card. Updated prd.md and spec.md to match.
+- In the next review, the learner decided the following: the "+Npt" flying to the total earned gets a trail of sparks, and sparks also fly when it reaches the total. The sparks were combined into a shared `Sparks`. Updated prd.md to match.
+- In the next review, the learner decided the following: the path of the "+Npt" flying to the total earned became an arc that bulges left and curves right (a quadratic Bézier curve). Missions on the home screen list unfinished ones on top and cleared ones below. A cleared card stays in its original position until its pt reaches the total earned, and then moves down (AI's decision: so the effect is visible in place). Updated prd.md to match.
+- In the next review, the learner decided the following: the missions' probability distributions stay off the screen. The time left is "N d N h left" when it is 1 day or more. On screen, pt is called "acorns" and shown as a pixel-art acorn with a number, and in sentences it is counted as "N acorns" ("1 AC" came up as an idea but was not adopted). Next to the icon there is only the number (no ×), and the heading at the top right stays "Total earned" (AI's decision; waiting for the learner's answer). Data and API names stay `pt`. Updated prd.md and spec.md to match.
+- In the next review, the learner decided the following: the logo at the top left of the home screen and the "Total earned" text at the top right were removed (the top right is just the acorn and the number). The logo on the setup screen stays. Updated prd.md to match.
+- In slice 4 (AI's decision, waiting for the learner's confirmation): rewards are called "rewards" on screen. Shop cards do not show probability distribution bars, only the price (acorns) and the names of the chosen price range and period (matching the learner's decision to remove the mission distributions). The balance at the top right of the shop is labeled "On hand" (to tell it apart from the total earned on the home screen). A confirmation window appears before redeeming. The home screen and the shop are switched with tabs at the bottom of the screen, and `router.replace` keeps screens from stacking up. The demo time controls stay under the home screen. Large numbers are separated every 3 digits (30,000). Updated prd.md and spec.md to match.
+- In the review after slice 4, the learner decided the following: the shop's screen name and tab became "Rewards," and the "Rewards" heading and the "On hand" text at the top right were removed. The cards do not show the actual money amount (price range). Reward prices were multiplied by 1.3 (the AI picked a value near the middle of "about 1.2–1.5x"; `REWARD_MARKUP` in `api/src/acorn_api/pricing.py`). Prices of already registered rewards do not change (the price is set at registration). The card puts the redeem button on the same row as the name and price. Updated prd.md and spec.md to match.
+- In slice 5 (AI's decision): carry-over is not a checkbox but a "Carry over" button on each row of "Last week's missions" (pressing it immediately puts the mission into an empty slot this week, and it cannot be pressed when the slots are full). A carried-over mission is created with a new id. "Next week" moves to the same time next Monday. In case Monday arrives while the app is open, the home screen checks the week every minute. Updated prd.md and spec.md to match.
+- In the final review, the learner decided the following: the clear toasts were removed. A settings screen for changing the name and language was added (bringing back the language switch that was removed after slice 2). The settings screen is opened from a third tab at the bottom of the screen (gear icon), the name is confirmed with a "Save" button, and the language switches the moment it is chosen (all AI's decision). Updated prd.md and spec.md to match.
+- In the final review, the learner decided the following: the top right of the home screen changed from total earned to acorns on hand (balance). After redeeming and returning to the home screen, the number did not go down, which was confusing (this revises the earlier "do not show the balance on the home screen" and "the top right is total earned"). Total earned is no longer shown anywhere. Updated prd.md and spec.md to match.
+- While preparing to go public, the learner decided the following: CI moved from the self-hosted runner on the home k8s cluster to GitHub's `ubuntu-latest`. In a public repository, code from pull requests that anyone can open would run on the self-hosted runner. Updated spec.md to match.

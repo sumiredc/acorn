@@ -3,58 +3,58 @@ doc: scope
 status: approved
 ---
 
-# リアルクエストログ (Real-life Quest Log)
+# Real-life Quest Log
 
-自分で決めたデイリー/ウィークリーミッションをクリアしてポイントを貯め、ウィッシュリストの現実の報酬と交換する、ゲームのミッションループを現実に持ち込むアプリ。
+An app that brings the game mission loop into real life: you clear daily/weekly missions you set yourself, collect points, and exchange them for real-life rewards on your wishlist.
 
 ## The Unique Kernel
-ミッションの難易度（＝獲得ポイント）は自分ではなく AI（Jev）が採点し、報酬の価格は「月の自由に使える金額」と結びつけて計算する。値付けを自分の手から離すことで、自分に甘くも厳しくもならない「経済」を作る。
+The difficulty of a mission (= the points it earns) is scored by an AI (Jev), not by you, and reward prices are calculated from your "monthly spending money." Taking pricing out of your own hands creates an "economy" that is neither too lenient nor too strict on yourself.
 
 ## Who It's For
-自分自身。ゲームのデイリー/ウィークリーミッションのような動機づけを、現実の習慣と「ご褒美」に使いたい人。自分で目標とご褒美を決めると、値付けが甘すぎたり厳しすぎたりして長続きしない。
+Myself. People who want to use the kind of motivation that game daily/weekly missions give for real-life habits and "rewards." When you set your own goals and rewards, the pricing ends up too lenient or too strict, and it does not last.
 
 ## The Core Loop
-1. 週の始め（月曜、またはその週に初めて起動したとき）に、Jev がミッションのポイントを採点し直し、その週のレートが決まる。
-2. 毎日アプリを開き、デイリーをクリア（自己申告）してポイントを得る。週内にウィークリーもクリアする。
-3. 貯まったポイントで、ウィッシュリストの報酬と交換する。
+1. At the start of the week (Monday, or the first launch that week), Jev re-scores the mission points and that week's rate is set.
+2. Open the app every day, clear dailies (self-reported), and earn points. Also clear the weekly within the week.
+3. Exchange the saved points for rewards on the wishlist.
 
-戻ってくる理由：毎日のクリアでポイントが貯まり、欲しいものに近づいていくのが見えること。週ごとにレートが動く「為替」のような変化。
+Reason to come back: seeing the points pile up with each day's clears and getting closer to what you want. The "exchange rate"-like change, where the rate moves every week.
 
 ## Inspiration & Identity
-- ゲームのデイリー/ウィークリーミッション
-- Jev の確率分布をゲームのステータス画面風に見せる（例：「120pt 62% / 80pt 30%」のような採点の内訳）
-- PoC は Web でモバイルレイアウトを想定（本番はネイティブモバイルを想定）
+- Game daily/weekly missions
+- Show Jev's probability distribution like a game status screen (e.g. a scoring breakdown such as "120pt 62% / 80pt 30%")
+- The PoC is web with a mobile layout (production is expected to be a native mobile app)
 
 ## Why This Matters to the Learner
-ゲームで効いている動機づけのループを、自分の現実の生活に持ち込みたい。値付けを自分でやると経済が崩れるので、そこを AI に任せたい。
+I want to bring the motivation loop that works in games into my own real life. If I do the pricing myself, the economy breaks, so I want to leave that to AI.
 
 ## What "Working" Looks Like
-Web のモックで、最低限の機能が一通り動くこと：
-- ミッション（デイリー/ウィークリー）と報酬を登録する
-- ミッションをクリアしてポイントを得る
-- ポイントを使って報酬と交換する
+In a web mock, the minimum features work end to end:
+- Register missions (daily/weekly) and rewards
+- Clear a mission and earn points
+- Use points to exchange for a reward
 
-「おっ」と思わせる瞬間：ミッションを登録すると Jev がポイントを採点し、その確率分布がステータス画面のように出る。モック専用の「週を進める」操作で再採点が走り、レートと報酬の価格が動く。
+The "wow" moment: when you register a mission, Jev scores its points and the probability distribution appears like a status screen. A mock-only "advance the week" control triggers re-scoring, and the rate and reward prices move.
 
 ## The POC Boundary
-- ミッション：デイリーは最大 3 件、ウィークリーは最大 1 件。登録時に指定するのはデイリーかウィークリーかだけ。追加・変更・削除は週の始めにのみ可能。
-- 採点：Jev が判定するのはミッションのポイントだけ。週が切り替わるたび（月〜日で 1 週間。月曜、または週内で初めての起動時）に採点し直す。
-- 報酬：ウィッシュリストに報酬名と金額（円）を自分で入力する。価格（pt）は「月の自由に使える金額」とその月に獲得できる合計ポイントから逆算し、週ごとに見直す。
-- プロフィールに「1 か月あたりの自由に使える金額」を設定する。
-- Jev の確率分布をステータス画面風に表示する。
-- 完了は自己申告（不正対策はしない）。
-- モック専用の時間操作（週を進める）。
-- Web、モバイルレイアウト。
+- Missions: up to 3 dailies and up to 1 weekly. At registration you only specify daily or weekly. Adding, changing, and deleting are possible only at the start of the week.
+- Scoring: Jev judges only mission points. It re-scores every time the week switches (one week is Monday to Sunday; on Monday, or on the first launch within the week).
+- Rewards: you enter the reward name and amount (yen) on the wishlist yourself. The price (pt) is worked back from the "monthly spending money" and the total points that can be earned that month, and is reviewed every week.
+- Set the "spending money per month" in the profile.
+- Show Jev's probability distribution like a status screen.
+- Completion is self-reported (no anti-cheating measures).
+- Mock-only time controls (advance the week).
+- Web, mobile layout.
 
 ## Later
-- ネイティブモバイルアプリ
-- 価格に納得できないときの手動調整（±1 段階など）。採用するかどうか未定。
+- Native mobile app
+- Manual adjustment when you do not agree with a price (e.g. ±1 step). Undecided whether to adopt.
 
 ## Explicitly Cut
-- AI によるテキスト生成（ミッションの提案、レビューコメント）：AI の役割は値付けに絞る。
-- ソーシャル機能：自分のための経済で、他人は関係しない。
-- 不正対策：自分に正直であるための仕組みなので不要。
+- Text generation by AI (mission suggestions, review comments): the AI's role is limited to pricing.
+- Social features: this is an economy for yourself; other people are not involved.
+- Anti-cheating measures: unnecessary, since this is a system for being honest with yourself.
 
 ## Open Questions for Later Phases
-- Jev（jev-1.13）がどこから、どう呼べるか（Vercel AI Gateway / OpenRouter というのは AI が仮に置いたもので、未確認）。型付きの回答（Choice / Score など）や確率分布が取れるかも含めて `4-spec` で確かめる。
-- 「その月に獲得できる合計ポイント」の正確な計算方法と、ポイント残高の週・月またぎの扱いは `3-prd` で決める。
+- Where and how Jev (jev-1.13) can be called (Vercel AI Gateway / OpenRouter are placeholders the AI put in and are unconfirmed). Check in `4-spec`, including whether typed answers (Choice / Score, etc.) and probability distributions are available.
+- The exact calculation of "the total points that can be earned that month," and how the point balance is handled across weeks and months, are decided in `3-prd`.

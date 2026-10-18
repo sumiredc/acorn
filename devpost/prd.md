@@ -5,183 +5,183 @@ status: approved
 
 # Acorn — Product Requirements
 
-自分で決めたデイリー/ウィークリーミッションをクリアしてポイントを貯め、ショップで現実のご褒美と交換する、自分のためのアプリ。ミッションの稼ぎも報酬の価格も AI（Jev）が判定する。
-名前の由来：リスはどんぐりをせっせと集めて貯め、あとで食べる。「ミッションで稼いで貯め、ご褒美に使う」というアプリの仕組みそのもの。
+An app for yourself: clear daily/weekly missions you set yourself, collect points, and exchange them for real-life rewards in the shop. An AI (Jev) judges both what missions earn and what rewards cost.
+Origin of the name: a squirrel busily gathers acorns, stores them, and eats them later. That is exactly how the app works: "earn with missions, save, and spend on rewards."
 Source: `scope.md > The Unique Kernel`, `scope.md > The Core Loop`
 
 ## The Core Journey
 
-1. **初めて開く**：言語を選び、名前を入れ、月の予算（$）を設定する（それぞれ未設定のときだけ）。
-2. **報酬を登録する**（1 件もないときだけ）：最低 1 件、最大 5 件。報酬ごとに Jev が価格（pt）を判定し、確率分布を表示する。
-3. **今週のミッションを決める**：デイリー（最大 3 件）とウィークリー（最大 1 件）、合わせて最低 1 件。先週のミッションがあれば引き継げる（進捗はリセット）。
-4. **登録する**：「登録」ボタンを押すと送信中になり、Jev が各ミッションの pt を判定する。ミッションの確率分布は画面に出さない（学習者の判断）。失敗したらトーストでエラーを出し、同じ画面から再試行できる。
-5. **毎日**：ホームでその週のタイムラインとミッションを見る。デイリーをクリア（自己申告）して pt を得る。週内にウィークリーもクリアする。
-6. **ショップで交換する**：貯まった pt でウィッシュリストの報酬と交換する。交換した報酬は「交換済み」になる。
-7. **次の週**：月曜（月曜に開かなければ、その週に初めて開いたとき）に週がリセットされ、3〜4 に戻る。ポイント残高はそのまま残る。
+1. **First open**: choose a language, enter a name, and set the monthly budget ($) (each only when not yet set).
+2. **Register rewards** (only when there are none): at least 1, at most 5. Jev judges a price (pt) for each reward and shows the probability distribution.
+3. **Decide this week's missions**: dailies (up to 3) and a weekly (up to 1), at least 1 in total. If there are last week's missions, they can be carried over (progress is reset).
+4. **Register**: pressing the "Register" button puts it into the sending state, and Jev judges the pt of each mission. The missions' probability distribution is not shown on screen (learner's decision). On failure, an error toast appears and you can retry from the same screen.
+5. **Every day**: on Home, see the week's timeline and missions. Clear dailies (self-reported) to earn pt. Also clear the weekly within the week.
+6. **Exchange in the shop**: exchange the saved pt for rewards on the wishlist. An exchanged reward becomes "Redeemed."
+7. **Next week**: on Monday (or, if the app is not opened on Monday, the first open that week) the week resets and you go back to steps 3–4. The point balance stays as is.
 
-成功：登録 → 採点 → クリア → pt 獲得 → 交換までを 1 周できること。デモでは「日を進める」「週を進める」操作で、これを 1 分で見せる。（`scope.md > What "Working" Looks Like`）
+Success: being able to go around once from register → scoring → clear → earn pt → exchange. In the demo, the "Next day" and "Next week" controls show this in 1 minute. (`scope.md > What "Working" Looks Like`)
 
 ## Screens and Layout
 
-モバイルレイアウトの Web（`scope.md > The POC Boundary`）。
+Web with a mobile layout (`scope.md > The POC Boundary`).
 
-- **週の準備フロー**：言語 → 名前 → 予算 → 報酬 → ミッション（登録）、の順に必要なステップだけを進む。週の初回起動時に表示される。
-- **ホームのあいさつ**：「〇〇さん、おかえりなさい！」
-- **ホーム**：1 週間のタイムライン（月〜日）と、今週のミッションとクリア状況。ホームの右上には、手持ちのどんぐり（残高。交換すると減る）を、どんぐりと数字だけで出す（ごほうび画面の右上と同じ数）。画面名「ホーム」と左上のロゴは出さない。
-- **ショップ**：ウィッシュリストをショップ画面のように並べ、価格（pt）と交換ボタンを置く。
-- **デモ用の時間操作**：「日を進める」「週を進める」。モックでだけ使う。
+- **Weekly setup flow**: go through only the needed steps, in the order language → name → budget → rewards → missions (register). Shown on the first launch of the week.
+- **Home greeting**: "Welcome back, {name}!"
+- **Home**: a one-week timeline (Mon–Sun), and this week's missions and their clear status. At the top right of Home, show the acorns on hand (the balance; it decreases when you exchange) with just an acorn and a number (the same number as at the top right of the Rewards screen). The screen name "Home" and the logo at the top left are not shown.
+- **Shop**: lay out the wishlist like a shop screen, with a price (pt) and a redeem button.
+- **Demo time controls**: "Next day" and "Next week". Used only in the mock.
 
 ## Look and Feel
-- 昔の RPG 風。参考は初代ポケモン（赤・緑・青）のような雰囲気。
-- やわらかく可愛い印象。ただし可愛すぎるのは避ける。
-- 色は単色でなくてよい（ゲームボーイの単色緑に限定しない）。
-- Jev の確率分布はゲームのステータス画面風に見せる（`scope.md > Inspiration & Identity`）。
-- ショップはゲームのショップ画面のように。
-- 特定のゲームの素材やキャラクターは使わず、雰囲気だけを参考にする。
-- ロゴはドット絵のどんぐり（絵文字は使わない）。アプリのアイコンも同じ絵。
-- 日本語は普通の漢字かな交じり（子供向けのひらがな表記にしない）。
-- 画面には「Jev」という名前を出さない（知らない人には分からないため）。ミッションの確定は「登録」と言う。
+- Old-school RPG style. The reference is the atmosphere of the original Pokémon (Red, Green, Blue).
+- A soft, cute impression. But avoid being too cute.
+- Colors do not have to be a single color (not limited to the Game Boy's monochrome green).
+- Show Jev's probability distribution like a game status screen (`scope.md > Inspiration & Identity`).
+- Make the shop like a game shop screen.
+- Do not use assets or characters from any specific game; only reference the atmosphere.
+- The logo is a pixel-art acorn (no emoji). The app icon uses the same image.
+- Japanese uses normal kanji-kana mixed text (not hiragana-only writing for children).
+- Do not show the name "Jev" on screen (people who do not know it would not understand). Confirming missions is called "Register."
 
 ## Features and Behavior
 
-- 画面では pt を「どんぐり」として見せる：ドット絵のどんぐり（ロゴと同じ絵）と数字を並べ、文章では「どんぐり 3個」のように「個」で数える。「1 AC」のような文字の単位は使わない（アプリ名と紛らわしく、RPG の Armor Class とも重なるため）。データと API の名前は `pt` のまま。
+- On screen, pt is shown as "acorns": a pixel-art acorn (the same image as the logo) next to a number, and in text it is counted like "3 acorns." Do not use a text unit like "1 AC" (it is confusing with the app name and overlaps with Armor Class in RPGs). Names in data and the API stay `pt`.
 
-### 予算
-- 月の予算を $ で設定する。PoC で扱う通貨は $ だけ。
-- 「1pt ≒ $1」とみなす。ポイントは現実のお金をゲーム内のお金に換えたもの。
-- [ ] 予算が未設定のときだけ、準備フローの最初に予算の入力が出る。
-- [ ] 設定済みなら、次の週からは予算のステップが出ない。
+### Budget
+- Set the monthly budget in $. The only currency the PoC handles is $.
+- Treat "1pt ≒ $1." Points are real money converted into in-game money.
+- [ ] Only when the budget is not set, the budget input appears at the start of the setup flow.
+- [ ] If it is set, the budget step does not appear from the next week on.
 
-### 報酬とその価格（ショップ）
-- 報酬名を入力すると、Jev が価格（pt）を判定する。価格は「この報酬にどれくらいで届くべきか」を表す。
-  - 値段のあるもの（例：ヘッドホン）：Jev が金額を見積もり、それを pt にする（$1 ≒ 1pt、さらに 1.3 倍）。
-  - 値段のつけにくいもの（概念のような報酬）：Jev が「どれくらいの期間で届くと良いか」を判定し、期間 × 月の予算で pt に換算する。
-  - 結果として、同じ報酬でも予算が大きい人ほど早く届く（例：予算 $50,000/月なら一般的な車に 1 か月ほどで届く）。
-- 価格は登録時に決まり、あとで見直さない。
-- 数量の指定はない。1 件 = 1 回の交換。
-- 報酬は最大 5 件（交換済みは数えない）。ショップからいつでも追加できる。
-- 画面では報酬とショップを「ごほうび」と呼ぶ（画面名もタブも「ごほうび」）。右上に手持ちのどんぐり（残高）を、どんぐりと数字だけで出す。交換の前に確認の窓を出す。画面下のタブでホーム・ごほうび・設定を切り替える（準備フローでは出さない）。
-- 価格は、金額または期間から求めた値の 1.3 倍にする（学習者の判断：1.2〜1.5 倍くらい。少し頑張らないと届かないように）。
-- [ ] 報酬を追加すると、Jev が判定した価格（どんぐりの数）が表示される。実際の金額（価格帯）や確率分布は出さない。
-- [ ] 残高が価格に足りない報酬の交換ボタンは押せない。
-- [ ] 交換すると残高から価格分の pt が減り、その報酬が「交換済み」になる。
-- [ ] 押せないはずの交換が通ってしまい、残高が足りなかった場合は、エラートースト「どんぐりが足りません！」が出て残高は変わらない。
+### Rewards and Their Prices (Shop)
+- When you enter a reward name, Jev judges its price (pt). The price represents "how long it should take to reach this reward."
+  - Things with a price (e.g. headphones): Jev estimates the amount and turns it into pt ($1 ≒ 1pt, then × 1.3).
+  - Things that are hard to price (concept-like rewards): Jev judges "how long it should take to reach it," and converts it to pt as period × monthly budget.
+  - As a result, for the same reward, the bigger the budget, the sooner you reach it (e.g. with a budget of $50,000/month, you reach an ordinary car in about 1 month).
+- The price is set at registration and is not reviewed later.
+- There is no quantity setting. 1 item = 1 exchange.
+- Up to 5 rewards (redeemed ones do not count). You can add them from the shop at any time.
+- On screen, rewards and the shop are called "Rewards" (both the screen name and the tab are "Rewards"). At the top right, show the acorns on hand (balance) with just an acorn and a number. Show a confirmation dialog before exchanging. The tabs at the bottom of the screen switch between Home, Rewards, and Settings (not shown in the setup flow).
+- The price is 1.3 times the value derived from the amount or the period (learner's decision: "about 1.2 to 1.5 times," so that you cannot reach it without a bit of effort).
+- [ ] When you add a reward, the price Jev judged (the number of acorns) is shown. The actual amount (price range) and the probability distribution are not shown.
+- [ ] The redeem button of a reward whose price the balance does not cover cannot be pressed.
+- [ ] When you exchange, the price in pt is subtracted from the balance and the reward becomes "Redeemed."
+- [ ] If an exchange that should not be possible goes through and the balance is short, the error toast "Not enough acorns!" appears and the balance does not change.
 
-### ミッションとその pt
-- 登録時に指定するのは、名前、デイリーかウィークリーか、記録のしかた（進捗率・回数・時間）。回数と時間のときは目標の数も入れる（時間は分で入れる）。距離などは名前に含め（例：「10km 走る」）、進捗率で記録する。
-- 今週のミッションは空きスロット（デイリー 3 枠、ウィークリー 1 枠）で表示する。空きを押すとモーダルが開き、そこで登録を確定する（入力途中のまま次に進まないように）。目標も Jev の判定の材料になる。デイリーは最大 3 件、ウィークリーは最大 1 件、合わせて最低 1 件。
-- ミッションの追加・変更・削除は、週の準備フローの中でだけできる。削除はゴミ箱のアイコンで、押すと確認の窓が出る。
-- ホームのミッション名の横には目標を出さない（進み具合の表示と重なるため）。
-- 先週のミッションは引き継げる。引き継いでも進捗はリセットされる。
-- Jev が各ミッションの難しさを判定し、月の予算と組み合わせて pt を決める。難しいほど pt が多く、予算が大きいほど pt が多い。「普通の難しさのミッションを 1 か月すべてクリアすると、だいたい月の予算に届く」くらいが目安。
-- ミッションは週ごとに採点し直す（引き継いだものも含む）。採点し直した pt はその週のあいだ変わらない。
-- [ ] 採点後、各ミッションに pt（どんぐりの数）が表示される。ミッションの確率分布は出さない。
-- [ ] 回数・時間のミッションには目標（例：「20回」「300分」）が表示され、目標が大きいほど難しく判定される。
-- [ ] 制限を超えて登録しようとすると（デイリー 4 件目、ウィークリー 2 件目）、追加できない。
-- [ ] ミッションが 0 件のままでは準備を終えられない。
+### Missions and Their pt
+- At registration you specify the name, daily or weekly, and the tracking method (progress %, count, time). For count and time, also enter a target number (time is entered in minutes). Things like distance go in the name (e.g. "Run 10 km") and are tracked by progress %.
+- This week's missions are shown as empty slots (3 daily slots, 1 weekly slot). Pressing an empty slot opens a modal, where you confirm the registration (so you do not move on with a half-filled input). The target is also input to Jev's judgment. Up to 3 dailies and up to 1 weekly, at least 1 in total.
+- Missions can be added, changed, and deleted only inside the weekly setup flow. Deleting uses a trash can icon, and pressing it shows a confirmation dialog.
+- The target is not shown next to the mission name on Home (it would overlap with the progress display).
+- Last week's missions can be carried over. Progress is reset even when carried over.
+- Jev judges the difficulty of each mission and combines it with the monthly budget to decide the pt. The harder it is, the more pt; the bigger the budget, the more pt. The guideline is roughly "clearing a normal-difficulty mission every day for a whole month gets you to about the monthly budget."
+- Missions are re-scored every week (including carried-over ones). The re-scored pt does not change during that week.
+- [ ] After scoring, each mission shows its pt (the number of acorns). The missions' probability distribution is not shown.
+- [ ] Count and time missions show their target (e.g. "20 times", "300 min"), and the bigger the target, the harder it is judged.
+- [ ] Trying to register beyond the limit (a 4th daily, a 2nd weekly) cannot add it.
+- [ ] You cannot finish setup with 0 missions.
 
-### クリアと取り消し
-- デイリーは 1 日 1 回、ウィークリーは 1 週 1 回クリアできる。完了は自己申告。
-- ミッションは記録のしかたに合わせて進み具合（%・回数・分）を記録し、目標にすべて届いたときにクリアになって pt が入る（途中までなら 0pt）。デイリーは日ごとに 0 から、ウィークリーは週の中で積み上げる（Duolingo のミッションのような形）。
-- ホームのミッションの操作（記録する・取り消す・完了）はドット絵のアイコンボタン（輪郭線の鉛筆・戻る矢印・チェック欄）にする。
-- 進み具合は、ホームの「記録する」で開く窓で入れて、記録のアイコン（✓）で確定する（誤タップでクリアにならないように）。窓にキャンセルボタンは置かず、窓の外のタップか右上の × で閉じる（ミッションを追加する窓も同じ）。入れ方は「ボタン（＋／−）」「バー（タップ・ドラッグ）」「数値」を、窓の下のアイコンで切り替えられる。3 つは同じ高さで、切り替えても窓の配置は動かない。ボタンとバーの刻みは、進捗率は 10%、回数・時間は目標が 20 以下なら 1、50 以下なら 5、それより大きければ 10。どの記録のしかたにも、入力欄の右に「すべて完了」のアイコンがあり、押すと値が目標になる（保存は記録のアイコンを押したとき）。
-- ホームのミッションには、デイリー / ウィークリーをアイコンで示し、期限までの残り時間（1 時間未満は「あと○分」、1 日未満は「あと○時間」、それ以上は「あと○日○時間」）を小さく出す。難しさの分布はホームには出さない。
-- 目標が 1（1 回・1 分）のミッションは、進み具合のバーも記録の窓も出さず、「完了」のチェックボタン 1 つでクリアする。
-- 取り消しは確認の窓を出してから行う。取り消すと、進み具合はクリアする直前の値に戻る。
-- クリアすると、そのミッションの pt が残高に加わる。クリアの瞬間は、カードが一度弾んで淡く緑に光り、pt からドットの火花が散る。「+4pt」が光の尾を引きながら、いったん左へふくらんで右へ曲がる弧を描いて、カードから右上の手持ちまで飛んでいき、届いたところで手持ちのまわりにも火花が散って数え上がる（派手すぎない程度に）。クリアのトーストは出さない（演出で十分伝わるため。学習者の判断）。
-- クリアしてから 30 分以内なら取り消せる。取り消すと pt も戻る。
-- ただし、取り消すと残高がマイナスになる場合（例：クリア → 報酬と交換 → 取り消し で、残高がそのミッションの pt に満たない）は、30 分以内でも取り消せない。
-- 未クリアのまま日や週が終わっても、何も起きない（ペナルティはない）。
-- [ ] クリアすると、ホームの該当ミッションとタイムラインの今日の欄がクリア済みになり、残高が増える。
-- [ ] 30 分以内なら取り消せて、残高が元に戻る。30 分を過ぎた時点で取り消しボタンが消える。
-- [ ] 30 分以内でも、残高がそのミッションの pt に満たないときは取り消せない（残高はマイナスにならない）。
+### Clearing and Undo
+- A daily can be cleared once a day, and a weekly once a week. Completion is self-reported.
+- A mission records progress (%, count, minutes) according to its tracking method, and when the target is fully reached it becomes cleared and the pt is added (0pt if only partway). Dailies start from 0 each day; weeklies accumulate over the week (like Duolingo's missions).
+- The mission controls on Home (record, undo, done) are pixel-art icon buttons (an outlined pencil, a back arrow, a checkbox).
+- Progress is entered in the dialog opened by "Record" on Home and confirmed with the record icon (✓) (so that a mistaken tap does not clear it). The dialog has no cancel button; it closes by tapping outside it or the × at the top right (the same for the dialog for adding a mission). The input method can be switched among "Buttons (+/−)", "Bar (tap/drag)", and "Number" with icons at the bottom of the dialog. All three have the same height, and the dialog layout does not move when switching. The step for the buttons and the bar is 10% for progress %, and for count and time it is 1 if the target is 20 or less, 5 if 50 or less, and 10 if larger. Every tracking method has an "All done" icon to the right of the input field; pressing it sets the value to the target (it is saved when the record icon is pressed).
+- Missions on Home show daily / weekly as an icon, and show the time left until the deadline in small text ("○ min left" under 1 hour, "○ h left" under 1 day, "○ d ○ h left" otherwise). The difficulty distribution is not shown on Home.
+- A mission with a target of 1 (1 time, 1 minute) shows neither the progress bar nor the record dialog, and is cleared with a single "Done" check button.
+- Undo happens after showing a confirmation dialog. Undoing returns the progress to the value just before clearing.
+- When cleared, that mission's pt is added to the balance. At the moment of clearing, the card bounces once and glows pale green, and pixel sparks scatter from the pt. "+4pt" flies with a trail of light from the card to the acorns on hand at the top right, along an arc that first swells to the left and then curves right; when it arrives, sparks also scatter around the acorns on hand and the number counts up (not too flashy). No clear toast is shown (the animation conveys it well enough; learner's decision).
+- A clear can be undone within 30 minutes. Undoing also returns the pt.
+- However, if undoing would make the balance negative (e.g. clear → exchange for a reward → undo, and the balance is less than that mission's pt), it cannot be undone even within 30 minutes.
+- If a day or week ends with a mission not cleared, nothing happens (no penalty).
+- [ ] When cleared, the mission on Home and today's cell in the timeline become cleared, and the balance increases.
+- [ ] Within 30 minutes it can be undone and the balance returns to what it was. Once 30 minutes have passed, the undo button disappears.
+- [ ] Even within 30 minutes, it cannot be undone when the balance is less than that mission's pt (the balance does not go negative).
 
-### ホームのタイムライン
-- 月〜日の 7 日間を並べ、各日をデイリーの数のピースに分けたドット絵のパズルで示し、クリアするごとにピースが埋まる（全部クリアで完成）。ピースの境界線は引かず、埋まった部分の形でピースが見える。今日の列は背景と曜日の色を変えて目立たせる。ウィークリーはここには出さない。
-- 今週のミッションの一覧と、それぞれのクリア状況。まだのミッションを上に、クリアしたミッションを下に並べる（クリアしたカードは、演出が終わってから下へ移る）。
-- [ ] 前の日のクリア状況が、タイムラインに残って見える。
+### Home Timeline
+- Lay out the 7 days from Mon to Sun, show each day as a pixel-art puzzle divided into as many pieces as there are dailies, and fill a piece with each clear (complete when all are cleared). No border lines are drawn between pieces; the pieces are visible from the shape of the filled parts. Today's column stands out with a different background and weekday color. The weekly is not shown here.
+- The list of this week's missions and the clear status of each. Missions not yet cleared are at the top, cleared missions at the bottom (a cleared card moves down after the animation ends).
+- [ ] The previous days' clear status stays visible on the timeline.
 
-### 言語
-- アプリの表示は英語と日本語に対応する。
-- 最初の画面で言語を選ぶ。端末の言語設定（日本語なら日本語、それ以外は英語）が選ばれた状態で表示される。
-- 選んだ言語は保存され、次に開いたときもその言語で表示される。あとから設定画面で切り替えられる（選んだ瞬間に切り替わる）。
-- 画面の文言と、ステータス画面の区分名（難しさの段階・価格帯・期間）が切り替わる。自分で入力したミッション名や報酬名は翻訳しない。
-- [ ] 最初の画面で、端末が日本語なら日本語が、それ以外なら英語が選ばれている。
-- [ ] 選んだ言語で、すべての画面の文言と区分名が表示され、開き直しても残る。
-- [ ] 英語のミッション名・報酬名でも、Jev が判定できる。
+### Language
+- The app display supports English and Japanese.
+- Choose the language on the first screen. It is shown with the device language setting preselected (Japanese if Japanese, English otherwise).
+- The chosen language is saved and used the next time the app opens. It can be switched later on the Settings screen (it switches the moment you choose).
+- The screen text and the category names on the status screen (difficulty levels, price ranges, periods) switch. Mission names and reward names you entered yourself are not translated.
+- [ ] On the first screen, Japanese is selected if the device is Japanese, English otherwise.
+- [ ] In the chosen language, all screen text and category names are shown, and this persists after reopening.
+- [ ] Jev can judge English mission names and reward names too.
 
-### 設定
-- 画面下の 3 つ目のタブ「設定」（歯車のアイコン）から開く。準備フローでは出さない。
-- 名前を変えられる：入力して「保存」を押す（空や同じ名前のときは押せない）。保存すると「名前を変えました」と出て、ホームのあいさつも変わる。
-- 言語を変えられる：English / 日本語を押すと、すぐに全画面の表示が切り替わる。
-- [ ] 名前を変えると、ホームのあいさつが新しい名前になり、開き直しても残る。
-- [ ] 言語を切り替えると、すぐにすべての画面がその言語になり、開き直しても残る。
+### Settings
+- Opened from the third tab at the bottom of the screen, "Settings" (gear icon). Not shown in the setup flow.
+- The name can be changed: enter it and press "Save" (it cannot be pressed when empty or the same name). Saving shows "Name changed," and the Home greeting changes too.
+- The language can be changed: pressing English / 日本語 switches the display of all screens immediately.
+- [ ] When the name is changed, the Home greeting uses the new name, and this persists after reopening.
+- [ ] When the language is switched, all screens immediately switch to that language, and this persists after reopening.
 
-### 週のリセット
-- 週は月〜日。月曜、または週内で初めて開いたときにリセットし、準備フローを出す。
-- ポイント残高はリセットしない（年をまたいでも消えない）。
-- 新しい週の準備では、先週のミッションが「先週のミッション」として並び、「引き継ぐ」で今週に入れられる（目標はそのまま、進み具合は 0、どんぐりの数は採点し直す）。何週も開かなかった場合は、最後に使った週のミッションが並ぶ。
-- アプリを開いたままで月曜になったときも、1 分以内に新しい週の準備に切り替わる。
-- [ ] 新しい週に初めて開くと準備フローが出て、残高は前の週の値のまま。
+### Weekly Reset
+- A week is Mon–Sun. Reset on Monday, or on the first open within the week, and show the setup flow.
+- The point balance is not reset (it does not disappear even across years).
+- In the new week's setup, last week's missions are listed as "Last week's missions," and "Carry over" puts them into this week (target unchanged, progress 0, number of acorns re-scored). If the app was not opened for several weeks, the missions of the last week used are listed.
+- Even when Monday arrives while the app is open, it switches to the new week's setup within 1 minute.
+- [ ] Opening for the first time in a new week shows the setup flow, and the balance stays at the previous week's value.
 
-### デモ用の時間操作
-- 「日を進める」：次の日になり、デイリーがまたクリアできるようになる。
-- 「週を進める」：次の週の月曜になり、週のリセットが起きる。
-- [ ] 「日を進める」で、タイムラインの今日の位置が 1 日進む。
-- [ ] 「週を進める」で、準備フローが出る。
+### Demo Time Controls
+- "Next day": it becomes the next day, and dailies can be cleared again.
+- "Next week": it becomes Monday of the next week, and the weekly reset happens.
+- [ ] "Next day" moves today's position on the timeline forward by 1 day.
+- [ ] "Next week" shows the setup flow.
 
 ## States and Boundaries
-- **初回起動**：言語 → 名前 → 予算 → 報酬 → ミッションの準備フローから始まる。
-- **送信中・採点前**：送信中はボタンが押せず、ミッションも編集できない。pt が決まるまでミッションはクリアできない。
-- **Jev の判定に失敗**：エラーをトーストで表示し、同じ画面から再試行できる。週の始めの採点に失敗した場合、採点が終わるまでその週のミッションはクリアできない。報酬の価格判定に失敗した場合も、エラーを出して再試行できる。
-- **残高不足**：交換ボタンは押せない。すり抜けた場合はエラートースト。
-- **ずっと残るもの**：予算、報酬（交換済みかどうかを含む）、ミッション、ポイント残高、過去のクリア状況。閉じて開き直しても残る。
+- **First launch**: starts from the setup flow of language → name → budget → rewards → missions.
+- **Sending / before scoring**: while sending, buttons cannot be pressed and missions cannot be edited. Missions cannot be cleared until their pt is set.
+- **Jev judgment fails**: an error is shown as a toast and you can retry from the same screen. If the start-of-week scoring fails, that week's missions cannot be cleared until scoring finishes. If the reward price judgment fails, an error is also shown and you can retry.
+- **Insufficient balance**: the redeem button cannot be pressed. If it slips through, an error toast.
+- **What always persists**: the budget, rewards (including whether redeemed), missions, point balance, and past clear status. They remain after closing and reopening.
 
 ## Product Decisions
-- 名前は Acorn。「稼いで貯めて、ご褒美に使う」をリスとどんぐりで表す。
-- ポイントは現実のお金を換算したもの（1pt ≒ $1）。報酬にどれくらいで届くかは報酬の中身で決まるべきで、月額で一律に換算すると、たとえば車が 1 か月で届いてしまうのは間違い。
-- 報酬の価格も Jev が判定する。自分で値付けすると経済が崩れるため（`scope.md > The Unique Kernel`）。
-- 報酬の価格は見直さない。毎週変わるのはミッションの pt だけ。
-- 数量の指定は廃止。
-- ポイントは持ち越し、リセットしない。
-- PoC の通貨は $ だけ。
-- 取り消しは 30 分以内。間違えて押したときのため。残高がマイナスになる取り消しはできない。
-- 報酬はいつでも追加できる。最大 5 件に交換済みは含めない。
-- 採点が終わるまでクリアできない。pt が決まっていないミッションは稼ぎが決まらないため。
-- 英語・日本語の多言語対応（`5-build` の計画時に追加）。最初の画面で選ぶ（端末の言語が初期値）。アプリ内の切り替えは、スライス 2 のあとの確認で学習者が外したが、最終確認で設定画面に入れ直した。
-- 名前の入力とホームのあいさつ（スライス 2 のあとの確認で追加）。
-- 名前と言語を変える設定画面（最終確認で学習者が追加）。
+- The name is Acorn. It expresses "earn, save, and spend on rewards" with a squirrel and acorns.
+- Points are a conversion of real money (1pt ≒ $1). How long it takes to reach a reward should be determined by what the reward is; converting uniformly by the monthly amount would be wrong, for example letting you reach a car in 1 month.
+- Jev also judges reward prices. Pricing them yourself breaks the economy (`scope.md > The Unique Kernel`).
+- Reward prices are not reviewed. Only the mission pt changes every week.
+- Quantity settings were dropped.
+- Points carry over and are not reset.
+- The PoC currency is $ only.
+- Undo is within 30 minutes, for when you press by mistake. An undo that would make the balance negative is not allowed.
+- Rewards can be added at any time. Redeemed ones do not count toward the maximum of 5.
+- Missions cannot be cleared until scoring finishes, because a mission without a set pt has no set earnings.
+- Multilingual support for English and Japanese (added when planning `5-build`). Chosen on the first screen (the device language is the default). In-app switching was removed by the learner in the review after slice 2, but was put back in the Settings screen in the final review.
+- Name entry and the Home greeting (added in the review after slice 2).
+- A Settings screen for changing the name and language (added by the learner in the final review).
 
 ## What We're Building
-- 週の準備フロー（予算・報酬・ミッション・採点）
-- Jev によるミッションの pt 判定と、報酬の価格判定。どちらも確率分布をステータス画面風に表示する
-- ホーム（タイムライン、ミッション、クリア、30 分以内の取り消し）
-- ショップ（ウィッシュリスト、交換、交換済み）
-- 週のリセットと、ポイント残高の持ち越し
-- デモ用の「日を進める」「週を進める」
-- 失敗時の表示と再試行、残高不足の防止
-- 昔の RPG 風で、モバイルレイアウトの見た目
-- 英語・日本語の表示（最初の画面で選ぶ）
-- 名前の入力とホームのあいさつ
-- 設定画面（名前と言語の変更）
+- The weekly setup flow (budget, rewards, missions, scoring)
+- Jev's judgment of mission pt and reward prices. Both show the probability distribution like a status screen
+- Home (timeline, missions, clearing, undo within 30 minutes)
+- Shop (wishlist, exchange, redeemed)
+- Weekly reset, and carrying over the point balance
+- The demo "Next day" and "Next week"
+- Failure display and retry, and preventing insufficient balance
+- An old-school RPG look with a mobile layout
+- English and Japanese display (chosen on the first screen)
+- Name entry and the Home greeting
+- Settings screen (changing the name and language)
 
 ## Deferred From the POC
-- $ 以外の通貨：為替レートが必要になり、外部データへの依存が増えるため。
-- ネイティブモバイルアプリ：PoC は Web で十分に見せられるため。
-- 価格の手動調整（±1 段階など）：採用するかどうか未定。
-- 予算をあとから変える操作：今回は扱っていない。
+- Currencies other than $: exchange rates would be needed, increasing dependence on external data.
+- Native mobile app: the PoC can be shown well enough on the web.
+- Manual price adjustment (e.g. ±1 step): undecided whether to adopt.
+- Changing the budget later: not handled this time.
 
 ## Possible Later Enhancements
-- 複数通貨に対応し、為替レートで換算する。
-- 交換の履歴やポイントの推移を見られるようにする。
+- Support multiple currencies, converting with exchange rates.
+- Make it possible to see exchange history and how points change over time.
 
 ## Non-Goals
-- AI によるテキスト生成（ミッションの提案、レビューコメント）：AI の役割は値付けに絞る。
-- ソーシャル機能：自分のための経済だから。
-- 不正対策：自己申告で、自分に正直であるための仕組みだから。
-- 報酬の数量指定：廃止した。
-- 入力したミッション名・報酬名の翻訳：自分で書いた言葉のまま表示する。
+- Text generation by AI (mission suggestions, review comments): the AI's role is limited to pricing.
+- Social features: because it is an economy for yourself.
+- Anti-cheating measures: because it is self-reported, a system for being honest with yourself.
+- Reward quantity settings: dropped.
+- Translating entered mission names and reward names: they are shown in the words you wrote yourself.
 
 ## Open Questions
-- **[4-spec で決める]** Jev の判定結果を pt にする正確な計算方法（難しさの段階の取り方、予算との掛け合わせ方、期間の候補）。製品として守るべき条件は「難しいほど・予算が大きいほど pt が多い」「普通の難しさで 1 か月すべてクリアすると、だいたい予算に届く」「値段のある報酬は $1 ≒ 1pt」。
-- **[4-spec で確認]** Jev がこの判定を型付きで返し、確率分布を出せるか（`scope.md > Open Questions for Later Phases`）。
+- **[Decide in 4-spec]** The exact calculation that turns Jev's judgment into pt (how to set the difficulty levels, how to combine with the budget, the period candidates). The conditions the product must keep: "the harder and the bigger the budget, the more pt," "clearing everything at normal difficulty for 1 month gets you to about the budget," and "for rewards with a price, $1 ≒ 1pt."
+- **[Confirm in 4-spec]** Whether Jev can return this judgment typed and give a probability distribution (`scope.md > Open Questions for Later Phases`).
