@@ -35,3 +35,7 @@ cd api && uv sync && uv run pytest    # API tests (a fake judge; no API key need
 - `mobile/` — Expo (React Native) app. Game rules are pure functions in `mobile/src/domain/`; every change to saved data goes through `mobile/src/storage/reducer.ts`.
 - `api/` — FastAPI server that calls Jev and converts its judgements into acorns (`api/src/acorn_api/pricing.py`).
 - `devpost/` — planning documents (scope, PRD, spec, build checklist) and `app-map.html`, a short guide to the code.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
