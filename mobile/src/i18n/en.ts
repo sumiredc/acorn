@@ -50,6 +50,7 @@ export const en = {
   'home.record': 'Record',
   'home.cleared': 'Cleared!',
   'home.undo': 'Undo',
+  'home.check': 'Done',
   'home.clearToast': 'Mission clear! +{pt}pt',
   'home.undoToast': 'Undone. -{pt}pt',
   'home.undoRefused': 'This clear can no longer be undone.',

@@ -1,6 +1,7 @@
 import {
   clampProgress,
   currentProgress,
+  isCheckOnly,
   periodEnd,
   progressKey,
   progressStep,
@@ -87,5 +88,14 @@ describe('progressKey', () => {
     const wednesday = new Date(2026, 9, 21, 9).getTime();
     expect(periodEnd(mission('daily'), week, wednesday)).toBe(new Date(2026, 9, 22).getTime());
     expect(periodEnd(mission('weekly'), week, wednesday)).toBe(new Date(2026, 9, 26).getTime());
+  });
+});
+
+describe('isCheckOnly', () => {
+  it('checks off a goal of exactly one time or one minute', () => {
+    expect(isCheckOnly({ unit: 'count', target: 1 })).toBe(true);
+    expect(isCheckOnly({ unit: 'minutes', target: 1 })).toBe(true);
+    expect(isCheckOnly({ unit: 'count', target: 2 })).toBe(false);
+    expect(isCheckOnly({ unit: 'percent', target: 100 })).toBe(false);
   });
 });

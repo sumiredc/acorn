@@ -44,3 +44,8 @@ export function periodEnd(mission: Pick<Mission, 'kind'>, week: Week, now: numbe
     ? midnightAfter(dateKey(now), 1)
     : midnightAfter(week.weekStart, 7);
 }
+
+// A goal of one time or one minute is just done or not, so it is checked off instead of measured.
+export function isCheckOnly(mission: Pick<Mission, 'unit' | 'target'>): boolean {
+  return mission.unit !== 'percent' && mission.target === 1;
+}

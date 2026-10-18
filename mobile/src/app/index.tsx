@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { canUndo, currentClear, nextUndoDeadline } from '@/domain/clears';
 import { appNow, remainingTime } from '@/domain/clock';
-import { currentProgress, periodEnd } from '@/domain/progress';
+import { currentProgress, isCheckOnly, periodEnd } from '@/domain/progress';
 import { nextSetupStep } from '@/domain/setup';
 import { timelineDays } from '@/domain/timeline';
 import type { Mission } from '@/domain/types';
@@ -47,8 +47,7 @@ export default function HomeScreen() {
   const week = data.week!;
   const at = appNow(realNow, data.clockOffsetMs);
 
-  function save(value: number) {
-    const mission = recording!;
+  function record(mission: Mission, value: number) {
     setRecording(null);
     dispatch({ type: 'recordProgress', missionId: mission.id, value, clearId: newId() });
     if (value >= mission.target) toast(t('home.clearToast', { pt: mission.pt! }), 'success');
@@ -82,12 +81,14 @@ export default function HomeScreen() {
               <PixelText style={styles.name}>{m.name}</PixelText>
               <PixelText style={styles.pt}>{m.pt}pt</PixelText>
             </View>
-            <View style={styles.progressRow}>
-              <View style={styles.grow}>
-                <ProgressBar value={value} unit={m.unit} target={m.target} cleared={!!clear} />
+            {!isCheckOnly(m) && (
+              <View style={styles.progressRow}>
+                <View style={styles.grow}>
+                  <ProgressBar value={value} unit={m.unit} target={m.target} cleared={!!clear} />
+                </View>
+                <PixelText style={styles.progressText}>{progressLabel(m, value, t)}</PixelText>
               </View>
-              <PixelText style={styles.progressText}>{progressLabel(m, value, t)}</PixelText>
-            </View>
+            )}
             <View style={styles.actions}>
               <PixelText style={styles.left}>
                 {clear ? '' : t(`remaining.${left.unit}`, { value: left.value })}
@@ -99,6 +100,8 @@ export default function HomeScreen() {
                     <ActionButton tone="plain" label={t('home.undo')} onPress={() => undo(m)} />
                   )}
                 </>
+              ) : isCheckOnly(m) ? (
+                <ActionButton icon="check" label={t('home.check')} onPress={() => record(m, 1)} />
               ) : (
                 <ActionButton label={t('home.record')} onPress={() => setRecording(m)} />
               )}
@@ -112,7 +115,7 @@ export default function HomeScreen() {
         value={recording ? currentProgress(recording, week, at) : 0}
         mode={mode}
         onModeChange={setMode}
-        onSave={save}
+        onSave={(value) => recording && record(recording, value)}
         onClose={() => setRecording(null)}
       />
     </Screen>

@@ -15,10 +15,12 @@ export function Timeline({ days }: { days: TimelineDay[] }) {
   return (
     <View style={styles.row}>
       {days.map((day, i) => (
-        <View key={day.date} style={styles.day}>
-          <PixelText style={[styles.label, day.isToday && styles.todayLabel]}>
-            {t(`day.${i}` as `day.${0 | 1 | 2 | 3 | 4 | 5 | 6}`)}
-          </PixelText>
+        <View key={day.date} style={[styles.day, day.isToday && styles.todayDay]}>
+          <View style={[styles.labelBox, day.isToday && styles.todayLabelBox]}>
+            <PixelText style={[styles.label, day.isToday && styles.todayLabel]}>
+              {t(`day.${i}` as `day.${0 | 1 | 2 | 3 | 4 | 5 | 6}`)}
+            </PixelText>
+          </View>
           <View
             accessibilityLabel={`${day.cleared}/${day.total}`}
             style={[styles.frame, day.isToday && styles.today]}
@@ -58,11 +60,14 @@ function Puzzle({ cleared, total }: { cleared: number; total: number }) {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: 4 },
-  day: { flex: 1, alignItems: 'center', gap: 4 },
+  day: { flex: 1, alignItems: 'center', gap: 4, paddingVertical: 4, borderRadius: 6 },
+  todayDay: { backgroundColor: colors.acornSoft },
+  labelBox: { paddingHorizontal: 6, borderRadius: 4 },
+  todayLabelBox: { backgroundColor: colors.ink },
   label: { fontSize: 13, color: colors.muted },
-  todayLabel: { color: colors.ink },
+  todayLabel: { color: colors.window },
   frame: { padding: 2, borderRadius: 4, borderWidth: 2, borderColor: 'transparent' },
-  today: { borderColor: colors.ink },
+  today: { borderColor: colors.acorn },
   puzzle: { width: SIZE, height: SIZE },
   pixelRow: { flexDirection: 'row' },
   empty: { width: SIZE, height: SIZE, backgroundColor: colors.soft },

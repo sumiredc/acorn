@@ -52,6 +52,7 @@ export const ja: Dictionary = {
   'home.record': '記録する',
   'home.cleared': 'クリア！',
   'home.undo': '取り消す',
+  'home.check': '完了',
   'home.clearToast': 'ミッションクリア！ +{pt}pt',
   'home.undoToast': '取り消しました。-{pt}pt',
   'home.undoRefused': 'このクリアはもう取り消せません。',
