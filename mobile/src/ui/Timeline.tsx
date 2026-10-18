@@ -4,9 +4,12 @@ import type { TimelineDay } from '@/domain/timeline';
 import { useAcorn } from '@/storage/store';
 
 import { PixelText } from './primitives';
-import { colors, grass } from './theme';
+import { PIECES, PUZZLES } from './puzzlePixels';
+import { colors } from './theme';
 
-// Monday to Sunday, one cell per day that gets greener as more daily missions are cleared.
+const SIZE = 36;
+
+// Monday to Sunday, one puzzle per day with a piece for each daily mission.
 export function Timeline({ days }: { days: TimelineDay[] }) {
   const { t } = useAcorn();
   return (
@@ -18,12 +21,45 @@ export function Timeline({ days }: { days: TimelineDay[] }) {
           </PixelText>
           <View
             accessibilityLabel={`${day.cleared}/${day.total}`}
-            style={[
-              styles.cell,
-              { backgroundColor: grass[day.level] },
-              day.isToday && styles.today,
-            ]}
-          />
+            style={[styles.frame, day.isToday && styles.today]}
+          >
+            <Puzzle cleared={day.cleared} total={day.total} />
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function Puzzle({ cleared, total }: { cleared: number; total: number }) {
+  if (total === 0) return <View style={styles.empty} />;
+  const rows = PUZZLES[Math.min(total, 3) as 1 | 2 | 3];
+  const pixel = SIZE / rows.length;
+  const filled = new Set(PIECES.slice(0, cleared));
+  return (
+    <View style={styles.puzzle}>
+      {rows.map((row, y) => (
+        <View key={y} style={styles.pixelRow}>
+          {[...row].map((piece, x) => {
+            // A light line where a piece meets another, like the cut of a jigsaw.
+            const edge = row[x + 1] !== undefined && row[x + 1] !== piece;
+            const below = rows[y + 1]?.[x];
+            const cut = edge || (below !== undefined && below !== piece);
+            return (
+              <View
+                key={x}
+                style={{
+                  width: pixel,
+                  height: pixel,
+                  backgroundColor: cut
+                    ? colors.window
+                    : filled.has(piece)
+                      ? colors.leaf
+                      : colors.soft,
+                }}
+              />
+            );
+          })}
         </View>
       ))}
     </View>
@@ -31,17 +67,13 @@ export function Timeline({ days }: { days: TimelineDay[] }) {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', gap: 6 },
+  row: { flexDirection: 'row', gap: 4 },
   day: { flex: 1, alignItems: 'center', gap: 4 },
   label: { fontSize: 13, color: colors.muted },
   todayLabel: { color: colors.ink },
-  cell: {
-    width: '100%',
-    aspectRatio: 1,
-    maxWidth: 40,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
+  frame: { padding: 2, borderRadius: 4, borderWidth: 2, borderColor: 'transparent' },
   today: { borderColor: colors.ink },
+  puzzle: { width: SIZE, height: SIZE },
+  pixelRow: { flexDirection: 'row' },
+  empty: { width: SIZE, height: SIZE, backgroundColor: colors.soft },
 });

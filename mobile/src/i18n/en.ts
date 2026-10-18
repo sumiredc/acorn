@@ -45,7 +45,6 @@ export const en = {
   'home.title': 'Home',
   'home.greeting': 'Welcome back, {name}!',
   'home.missions': "This week's missions",
-  'home.balance': 'Balance',
   'home.timeline': 'This week',
   'home.record': 'Record',
   'home.cleared': 'Cleared!',

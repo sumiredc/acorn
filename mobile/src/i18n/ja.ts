@@ -47,7 +47,6 @@ export const ja: Dictionary = {
   'home.title': 'ホーム',
   'home.greeting': '{name}さん、おかえりなさい！',
   'home.missions': '今週のミッション',
-  'home.balance': '残高',
   'home.timeline': '今週の記録',
   'home.record': '記録する',
   'home.cleared': 'クリア！',

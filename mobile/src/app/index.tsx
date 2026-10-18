@@ -2,7 +2,6 @@ import { Redirect } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { balance } from '@/domain/balance';
 import { canUndo, currentClear } from '@/domain/clears';
 import { remainingTime } from '@/domain/clock';
 import { currentProgress, periodEnd } from '@/domain/progress';
@@ -59,12 +58,6 @@ export default function HomeScreen() {
   return (
     <Screen title={t('home.title')}>
       <PixelText style={styles.greeting}>{t('home.greeting', { name: data.userName! })}</PixelText>
-      <Window>
-        <View style={styles.header}>
-          <PixelText style={styles.section}>{t('home.balance')}</PixelText>
-          <PixelText style={styles.balance}>{balance(data)}pt</PixelText>
-        </View>
-      </Window>
       <Window title={t('home.timeline')}>
         <Timeline days={timelineDays(week, data.clears, at)} />
       </Window>
@@ -125,7 +118,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   greeting: { fontSize: 17 },
   section: { fontSize: 15, color: colors.muted },
-  balance: { fontSize: 24, color: colors.acorn },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
   name: { flex: 1 },
   goal: { color: colors.sky },

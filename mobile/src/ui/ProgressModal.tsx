@@ -8,7 +8,7 @@ import { useAcorn } from '@/storage/store';
 import { amountLabel, progressLabel } from './missionText';
 import { PixelIcon } from './PixelIcon';
 import { ActionButton, Field, PixelText, Window } from './primitives';
-import { ProgressBar } from './ProgressBar';
+import { CONTROL_HEIGHT, ProgressBar } from './ProgressBar';
 import { colors, layout } from './theme';
 
 export type InputMode = 'buttons' | 'bar' | 'number';
@@ -83,45 +83,49 @@ function ProgressForm({
   return (
     <View style={styles.sheet}>
       <Window title={mission.name}>
-        <View style={styles.valueRow}>
-          <View style={styles.iconButton} />
-          <PixelText style={styles.value}>{progressLabel(mission, value, t)}</PixelText>
+        <PixelText style={styles.value}>{progressLabel(mission, value, t)}</PixelText>
+        <View style={styles.controlRow}>
+          <View style={styles.control}>
+            {mode === 'buttons' && (
+              <View style={styles.stepper}>
+                <ActionButton
+                  tone="plain"
+                  style={styles.stepButton}
+                  label={`−${amountLabel(unit, step, t)}`}
+                  disabled={value <= 0}
+                  onPress={() => change(stepProgress(value, unit, target, -1))}
+                />
+                <ActionButton
+                  style={styles.stepButton}
+                  label={`+${amountLabel(unit, step, t)}`}
+                  disabled={value >= target}
+                  onPress={() => change(stepProgress(value, unit, target, 1))}
+                />
+              </View>
+            )}
+            {mode === 'bar' && (
+              <ProgressBar value={value} unit={unit} target={target} onChange={change} />
+            )}
+            {mode === 'number' && (
+              <Field
+                autoFocus
+                style={styles.number}
+                value={text}
+                onChangeText={type}
+                onSubmitEditing={() => onSave(value)}
+                keyboardType="number-pad"
+                accessibilityLabel={t('progress.mode.number')}
+              />
+            )}
+          </View>
           <IconButton
             icon="max"
             label={t('progress.complete')}
             disabled={value >= target}
             onPress={() => change(target)}
+            large
           />
         </View>
-        {mode === 'buttons' && (
-          <View style={styles.stepper}>
-            <ActionButton
-              tone="plain"
-              label={`−${amountLabel(unit, step, t)}`}
-              disabled={value <= 0}
-              onPress={() => change(stepProgress(value, unit, target, -1))}
-            />
-            <ActionButton
-              label={`+${amountLabel(unit, step, t)}`}
-              disabled={value >= target}
-              onPress={() => change(stepProgress(value, unit, target, 1))}
-            />
-          </View>
-        )}
-        {mode === 'bar' && (
-          <ProgressBar value={value} unit={unit} target={target} onChange={change} />
-        )}
-        {mode === 'number' && (
-          <Field
-            autoFocus
-            style={styles.number}
-            value={text}
-            onChangeText={type}
-            onSubmitEditing={() => onSave(value)}
-            keyboardType="number-pad"
-            accessibilityLabel={t('progress.mode.number')}
-          />
-        )}
         <View style={styles.footer}>
           <View accessibilityRole="radiogroup" style={styles.modes}>
             {MODES.map((m) => (
@@ -150,6 +154,7 @@ function IconButton({
   onPress,
   selected,
   disabled = false,
+  large = false,
 }: {
   icon: 'max' | InputMode;
   label: string;
@@ -157,6 +162,8 @@ function IconButton({
   // Set only for the input mode switch, which acts as radio buttons.
   selected?: boolean;
   disabled?: boolean;
+  // As tall as the input next to it.
+  large?: boolean;
 }) {
   const radio = selected !== undefined;
   return (
@@ -168,6 +175,7 @@ function IconButton({
       onPress={onPress}
       style={[
         styles.iconButton,
+        large && styles.iconLarge,
         radio ? styles.iconRadio : styles.iconPlain,
         selected && styles.iconSelected,
         disabled && styles.iconDisabled,
@@ -187,10 +195,18 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   sheet: { width: '100%', maxWidth: layout.maxWidth },
-  valueRow: { flexDirection: 'row', alignItems: 'center' },
-  value: { flex: 1, fontSize: 22, textAlign: 'center' },
-  stepper: { flexDirection: 'row', justifyContent: 'center', gap: 16 },
-  number: { textAlign: 'center', fontSize: 20 },
+  value: { fontSize: 22, textAlign: 'center' },
+  controlRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  control: { flex: 1, height: CONTROL_HEIGHT, justifyContent: 'center' },
+  stepper: { flexDirection: 'row', gap: 8 },
+  stepButton: {
+    flex: 1,
+    height: CONTROL_HEIGHT,
+    paddingVertical: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  number: { height: CONTROL_HEIGHT, paddingVertical: 0, textAlign: 'center', fontSize: 20 },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -206,6 +222,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 6,
   },
+  iconLarge: { width: CONTROL_HEIGHT, height: CONTROL_HEIGHT },
   iconPlain: { borderWidth: 2, borderColor: colors.ink, backgroundColor: colors.acornSoft },
   iconRadio: { borderWidth: 2, borderColor: colors.soft, backgroundColor: colors.window },
   iconSelected: { backgroundColor: colors.ink, borderColor: colors.ink },

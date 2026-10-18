@@ -7,8 +7,6 @@ export type TimelineDay = {
   // How many daily missions were cleared that day, out of `total`.
   cleared: number;
   total: number;
-  // 0 when nothing was cleared, up to 4 when every daily mission was, like a contribution graph.
-  level: 0 | 1 | 2 | 3 | 4;
 };
 
 export function timelineDays(week: Week, clears: Clear[], now: number): TimelineDay[] {
@@ -18,13 +16,6 @@ export function timelineDays(week: Week, clears: Clear[], now: number): Timeline
     const cleared = clears.filter(
       (c) => c.weekStart === week.weekStart && c.date === date && daily.has(c.missionId),
     ).length;
-    const level = cleared === 0 ? 0 : Math.ceil((cleared / daily.size) * 4);
-    return {
-      date,
-      isToday: date === today,
-      cleared,
-      total: daily.size,
-      level: level as TimelineDay['level'],
-    };
+    return { date, isToday: date === today, cleared, total: daily.size };
   });
 }

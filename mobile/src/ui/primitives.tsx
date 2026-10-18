@@ -39,6 +39,7 @@ export function ActionButton({
   disabled = false,
   tone = 'acorn',
   wide = false,
+  style,
 }: {
   label: string;
   onPress: () => void;
@@ -46,6 +47,7 @@ export function ActionButton({
   tone?: 'acorn' | 'plain';
   // Full width, for the main action of a screen.
   wide?: boolean;
+  style?: ViewStyle;
 }) {
   return (
     <Pressable
@@ -59,6 +61,7 @@ export function ActionButton({
         wide && styles.buttonWide,
         disabled && styles.buttonDisabled,
         pressed && !disabled && styles.buttonPressed,
+        style,
       ]}
     >
       {/* ▶ marks only the actions that move you forward. */}
