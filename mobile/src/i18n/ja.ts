@@ -75,8 +75,6 @@ export const ja: Dictionary = {
   'home.cleared': 'クリア！',
   'home.undo': '取り消す',
   'home.check': '完了',
-  'home.clearToast': 'ミッションクリア！ どんぐりを{pt}個ゲット！',
-  'home.puzzleToast': '今日のパズル完成！ どんぐりを{pt}個ゲット！',
   'home.undoConfirm': '「{name}」のクリアを取り消しますか？',
   'home.undoToast': '取り消しました。どんぐり -{pt}個',
   'home.undoRefused': 'このクリアはもう取り消せません。',

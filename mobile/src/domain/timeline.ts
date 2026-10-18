@@ -1,5 +1,5 @@
 import { dateKey, weekDateKeys } from './clock';
-import type { Clear, Mission, Week } from './types';
+import type { Clear, Week } from './types';
 
 export type TimelineDay = {
   date: string;
@@ -18,16 +18,4 @@ export function timelineDays(week: Week, clears: Clear[], now: number): Timeline
     ).length;
     return { date, isToday: date === today, cleared, total: daily.size };
   });
-}
-
-// Whether clearing `mission` now fills the last piece of today's puzzle.
-export function completesToday(
-  week: Week,
-  clears: Clear[],
-  mission: Pick<Mission, 'kind'>,
-  now: number,
-): boolean {
-  if (mission.kind !== 'daily') return false;
-  const today = timelineDays(week, clears, now).find((d) => d.isToday);
-  return today !== undefined && today.cleared + 1 === today.total;
 }

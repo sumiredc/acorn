@@ -73,8 +73,6 @@ export const en = {
   'home.cleared': 'Cleared!',
   'home.undo': 'Undo',
   'home.check': 'Done',
-  'home.clearToast': 'Mission clear! Got {pt} acorns!',
-  'home.puzzleToast': "Today's puzzle complete! Got {pt} acorns!",
   'home.undoConfirm': 'Undo clearing "{name}"?',
   'home.undoToast': 'Undone. -{pt} acorns',
   'home.undoRefused': 'This clear can no longer be undone.',

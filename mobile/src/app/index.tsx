@@ -7,7 +7,7 @@ import { canUndo, currentClear, nextUndoDeadline } from '@/domain/clears';
 import { appNow, remainingTime } from '@/domain/clock';
 import { currentProgress, isCheckOnly, periodEnd } from '@/domain/progress';
 import { nextSetupStep } from '@/domain/setup';
-import { completesToday, timelineDays } from '@/domain/timeline';
+import { timelineDays } from '@/domain/timeline';
 import type { Mission } from '@/domain/types';
 import { newId } from '@/storage/id';
 import { useAcorn } from '@/storage/store';
@@ -87,7 +87,6 @@ export default function HomeScreen() {
 
   function record(mission: Mission, value: number) {
     setRecording(null);
-    const completes = completesToday(week, data.clears, mission, now());
     dispatch({ type: 'recordProgress', missionId: mission.id, value, clearId: newId() });
     if (value < mission.target) return;
     // Saved from the record window: start once the window has faded out.
@@ -95,7 +94,6 @@ export default function HomeScreen() {
     setCelebrating((prev) => ({ missionId: mission.id, key: (prev?.key ?? 0) + 1, delay }));
     setPending({ missionId: mission.id, pt: mission.pt!, flight: null });
     launchPoints(mission, delay);
-    toast(t(completes ? 'home.puzzleToast' : 'home.clearToast', { pt: mission.pt! }), 'success');
   }
 
   async function launchPoints(mission: Mission, delay: number) {

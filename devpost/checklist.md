@@ -66,6 +66,7 @@ Build mode: fast
 
 ## Final Review
 
+- [ ] クリアしたときのトースト（「ミッションクリア！」「今日のパズル完成！」）を出さない
 - [ ] Final review complete — feedback resolved and learner confirms ready to ship
 
 ## Code Tour and App Map
