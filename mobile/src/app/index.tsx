@@ -11,7 +11,7 @@ import type { Mission } from '@/domain/types';
 import { newId } from '@/storage/id';
 import { useAcorn } from '@/storage/store';
 import { DemoClock } from '@/ui/DemoClock';
-import { goalLabel, progressLabel } from '@/ui/missionText';
+import { progressLabel } from '@/ui/missionText';
 import { PixelIcon } from '@/ui/PixelIcon';
 import { ActionButton, PixelText, Window } from '@/ui/primitives';
 import { ProgressBar } from '@/ui/ProgressBar';
@@ -79,12 +79,7 @@ export default function HomeScreen() {
           <Window key={m.id} style={clear ? styles.cleared : undefined}>
             <View style={styles.header}>
               <PixelIcon name={m.kind} size={14} color={colors.acorn} label={t(`kind.${m.kind}`)} />
-              <PixelText style={styles.name}>
-                {m.name}
-                {m.unit !== 'percent' && (
-                  <PixelText style={styles.goal}> {goalLabel(m, t)}</PixelText>
-                )}
-              </PixelText>
+              <PixelText style={styles.name}>{m.name}</PixelText>
               <PixelText style={styles.pt}>{m.pt}pt</PixelText>
             </View>
             <View style={styles.progressRow}>
@@ -129,7 +124,6 @@ const styles = StyleSheet.create({
   section: { fontSize: 15, color: colors.muted },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
   name: { flex: 1 },
-  goal: { color: colors.sky },
   pt: { fontSize: 18 },
   cleared: { backgroundColor: colors.leafSoft },
   progressRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },

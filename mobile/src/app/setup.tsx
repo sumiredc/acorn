@@ -4,10 +4,12 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { apiClient } from '@/api/client';
 import { nextSetupStep } from '@/domain/setup';
-import type { Locale, MissionKind } from '@/domain/types';
+import type { Locale, Mission, MissionKind } from '@/domain/types';
 import { canFinishMissions, missionSlots } from '@/domain/week';
 import { newId } from '@/storage/id';
 import { useAcorn } from '@/storage/store';
+import { ConfirmModal } from '@/ui/ConfirmModal';
+import { IconButton } from '@/ui/IconButton';
 import { goalLabel } from '@/ui/missionText';
 import { MissionModal, type NewMission } from '@/ui/MissionModal';
 import { ActionButton, Choice, ErrorText, Field, PixelText, Window } from '@/ui/primitives';
@@ -118,6 +120,7 @@ function MissionsStep() {
   const missions = data.week?.missions ?? [];
   const [adding, setAdding] = useState<MissionKind | null>(null);
   const [sending, setSending] = useState(false);
+  const [removing, setRemoving] = useState<Mission | null>(null);
 
   async function score() {
     setSending(true);
@@ -134,6 +137,11 @@ function MissionsStep() {
     setSending(false);
     if (result.ok) dispatch({ type: 'missionsScored', results: result.data });
     else showToast(t(`error.${result.error}`));
+  }
+
+  function remove() {
+    if (removing) dispatch({ type: 'removeMission', id: removing.id });
+    setRemoving(null);
   }
 
   function add(mission: NewMission & { kind: MissionKind }) {
@@ -158,11 +166,11 @@ function MissionsStep() {
                         <PixelText style={styles.goal}> {goalLabel(mission, t)}</PixelText>
                       )}
                     </PixelText>
-                    <ActionButton
-                      tone="plain"
+                    <IconButton
+                      icon="trash"
                       label={t('setup.missions.remove')}
                       disabled={sending}
-                      onPress={() => dispatch({ type: 'removeMission', id: mission.id })}
+                      onPress={() => setRemoving(mission)}
                     />
                   </View>
                 ) : (
@@ -187,6 +195,12 @@ function MissionsStep() {
         onPress={score}
       />
       <MissionModal kind={adding} onAdd={add} onClose={() => setAdding(null)} />
+      <ConfirmModal
+        message={removing && t('setup.missions.removeConfirm', { name: removing.name })}
+        confirmLabel={t('setup.missions.remove')}
+        onConfirm={remove}
+        onCancel={() => setRemoving(null)}
+      />
     </>
   );
 }

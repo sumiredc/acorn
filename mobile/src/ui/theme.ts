@@ -23,4 +23,6 @@ export const layout = {
   gap: 12,
   border: 3,
   radius: 8,
+  // Inputs that sit side by side or swap places share this height, so the layout never shifts.
+  control: 44,
 };

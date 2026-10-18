@@ -1,15 +1,15 @@
 import { useState } from 'react';
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { Modal, StyleSheet, View } from 'react-native';
 
 import { clampProgress, progressStep, stepProgress } from '@/domain/progress';
 import type { Mission } from '@/domain/types';
 import { useAcorn } from '@/storage/store';
 
 import { amountLabel, progressLabel } from './missionText';
-import { PixelIcon } from './PixelIcon';
+import { IconButton } from './IconButton';
 import { ActionButton, Field, PixelText, Window } from './primitives';
-import { CONTROL_HEIGHT, ProgressBar } from './ProgressBar';
-import { colors, layout } from './theme';
+import { ProgressBar } from './ProgressBar';
+import { layout } from './theme';
 
 export type InputMode = 'buttons' | 'bar' | 'number';
 const MODES: InputMode[] = ['buttons', 'bar', 'number'];
@@ -148,44 +148,6 @@ function ProgressForm({
   );
 }
 
-function IconButton({
-  icon,
-  label,
-  onPress,
-  selected,
-  disabled = false,
-  large = false,
-}: {
-  icon: 'max' | InputMode;
-  label: string;
-  onPress: () => void;
-  // Set only for the input mode switch, which acts as radio buttons.
-  selected?: boolean;
-  disabled?: boolean;
-  // As tall as the input next to it.
-  large?: boolean;
-}) {
-  const radio = selected !== undefined;
-  return (
-    <Pressable
-      accessibilityRole={radio ? 'radio' : 'button'}
-      accessibilityLabel={label}
-      accessibilityState={radio ? { checked: selected } : { disabled }}
-      disabled={disabled}
-      onPress={onPress}
-      style={[
-        styles.iconButton,
-        large && styles.iconLarge,
-        radio ? styles.iconRadio : styles.iconPlain,
-        selected && styles.iconSelected,
-        disabled && styles.iconDisabled,
-      ]}
-    >
-      <PixelIcon name={icon} size={14} color={selected ? colors.window : colors.ink} />
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
@@ -197,16 +159,16 @@ const styles = StyleSheet.create({
   sheet: { width: '100%', maxWidth: layout.maxWidth },
   value: { fontSize: 22, textAlign: 'center' },
   controlRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  control: { flex: 1, height: CONTROL_HEIGHT, justifyContent: 'center' },
+  control: { flex: 1, height: layout.control, justifyContent: 'center' },
   stepper: { flexDirection: 'row', gap: 8 },
   stepButton: {
     flex: 1,
-    height: CONTROL_HEIGHT,
+    height: layout.control,
     paddingVertical: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  number: { height: CONTROL_HEIGHT, paddingVertical: 0, textAlign: 'center', fontSize: 20 },
+  number: { height: layout.control, paddingVertical: 0, textAlign: 'center', fontSize: 20 },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -215,16 +177,4 @@ const styles = StyleSheet.create({
   },
   modes: { flexDirection: 'row', gap: 4 },
   actions: { flexDirection: 'row', gap: 8 },
-  iconButton: {
-    width: 34,
-    height: 34,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 6,
-  },
-  iconLarge: { width: CONTROL_HEIGHT, height: CONTROL_HEIGHT },
-  iconPlain: { borderWidth: 2, borderColor: colors.ink, backgroundColor: colors.acornSoft },
-  iconRadio: { borderWidth: 2, borderColor: colors.soft, backgroundColor: colors.window },
-  iconSelected: { backgroundColor: colors.ink, borderColor: colors.ink },
-  iconDisabled: { opacity: 0.35 },
 });

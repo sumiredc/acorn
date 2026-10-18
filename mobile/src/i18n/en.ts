@@ -21,8 +21,9 @@ export const en = {
   'setup.missions.target': 'Target',
   'setup.missions.add': 'Add',
   'setup.missions.remove': 'Remove',
-  'setup.missions.done': 'Set points',
-  'setup.missions.sending': 'Setting points…',
+  'setup.missions.removeConfirm': 'Remove "{name}"?',
+  'setup.missions.done': 'Register',
+  'setup.missions.sending': 'Registering…',
 
   'kind.daily': 'Daily',
   'kind.weekly': 'Weekly',

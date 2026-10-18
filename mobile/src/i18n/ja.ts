@@ -23,8 +23,9 @@ export const ja: Dictionary = {
   'setup.missions.target': '目標',
   'setup.missions.add': '追加',
   'setup.missions.remove': '削除',
-  'setup.missions.done': 'ポイントを決める',
-  'setup.missions.sending': 'ポイントを決めています…',
+  'setup.missions.removeConfirm': '「{name}」を削除しますか？',
+  'setup.missions.done': '登録',
+  'setup.missions.sending': '登録しています…',
 
   'kind.daily': 'デイリー',
   'kind.weekly': 'ウィークリー',

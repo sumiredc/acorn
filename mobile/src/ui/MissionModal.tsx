@@ -72,7 +72,7 @@ function MissionForm({
         {unit !== 'percent' && (
           <View style={styles.inline}>
             <Field
-              style={styles.grow}
+              style={[styles.grow, styles.center]}
               value={targetText}
               onChangeText={setTargetText}
               onSubmitEditing={add}
@@ -104,5 +104,6 @@ const styles = StyleSheet.create({
   label: { fontSize: 13, color: colors.muted },
   inline: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   grow: { flex: 1 },
+  center: { textAlign: 'center' },
   actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, marginTop: 4 },
 });

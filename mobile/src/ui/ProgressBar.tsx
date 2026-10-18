@@ -4,13 +4,10 @@ import { type GestureResponderEvent, StyleSheet, View } from 'react-native';
 import type { MissionUnit } from '@/domain/types';
 import { progressStep, snapProgress } from '@/domain/progress';
 
-import { colors } from './theme';
+import { colors, layout } from './theme';
 
 // Ticks get too dense to read past this many steps; the bar still snaps to every step.
 const MAX_TICKS = 20;
-
-// Shared by every input in the record window, so switching modes never shifts the layout.
-export const CONTROL_HEIGHT = 44;
 
 // Read-only unless `onChange` is given; then tapping or dragging snaps to the nearest step.
 export function ProgressBar({
@@ -77,7 +74,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.soft,
     overflow: 'hidden',
   },
-  trackLarge: { height: CONTROL_HEIGHT },
+  trackLarge: { height: layout.control },
   fill: { position: 'absolute', left: 0, top: 0, bottom: 0, backgroundColor: colors.acorn },
   fillCleared: { backgroundColor: colors.leaf },
   tick: {
