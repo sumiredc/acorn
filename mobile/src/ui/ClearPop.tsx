@@ -1,11 +1,10 @@
 import { type ReactNode, useEffect, useState } from 'react';
-import { Animated, Easing, Platform, StyleSheet, View } from 'react-native';
+import { Animated, Platform, StyleSheet } from 'react-native';
 
+import { Sparks } from './Sparks';
 import { colors } from './theme';
 
 const useNativeDriver = Platform.OS !== 'web';
-const SPARKS = 10;
-const SPARK_COLORS = [colors.acorn, colors.leaf, colors.sky, '#e0b13a'];
 
 // A short celebration for the card that was just cleared: it bounces once with a soft green
 // flash and pixel sparks fly out from the points.
@@ -45,65 +44,8 @@ export function ClearPop({
     <Animated.View style={{ transform: [{ scale }] }}>
       {children}
       <Animated.View pointerEvents="none" style={[styles.flash, { opacity: flash }]} />
-      {play !== null && <Burst play={play} delay={delay} />}
+      {play !== null && <Sparks play={play} delay={delay} style={styles.sparks} />}
     </Animated.View>
-  );
-}
-
-function Burst({ play, delay }: { play: number; delay: number }) {
-  const [progress] = useState(() => new Animated.Value(0));
-
-  useEffect(() => {
-    progress.setValue(0);
-    Animated.sequence([
-      Animated.delay(delay),
-      Animated.timing(progress, {
-        toValue: 1,
-        duration: 1100,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver,
-      }),
-    ]).start();
-  }, [play, delay, progress]);
-
-  // Hidden until it starts, then fades only near the end (eased progress gets there early).
-  const fade = progress.interpolate({
-    inputRange: [0, 0.01, 0.85, 1],
-    outputRange: [0, 1, 1, 0],
-  });
-  return (
-    <View pointerEvents="none" style={styles.burst}>
-      {Array.from({ length: SPARKS }, (_, i) => {
-        const angle = (i / SPARKS) * 2 * Math.PI;
-        const distance = 30 + (i % 3) * 10;
-        return (
-          <Animated.View
-            key={i}
-            style={[
-              styles.spark,
-              {
-                backgroundColor: SPARK_COLORS[i % SPARK_COLORS.length],
-                opacity: fade,
-                transform: [
-                  {
-                    translateX: progress.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0, Math.cos(angle) * distance],
-                    }),
-                  },
-                  {
-                    translateY: progress.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0, Math.sin(angle) * distance],
-                    }),
-                  },
-                ],
-              },
-            ]}
-          />
-        );
-      })}
-    </View>
   );
 }
 
@@ -113,14 +55,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.leafSoft,
     borderRadius: 8,
   },
-  burst: {
-    position: 'absolute',
-    right: 17,
-    top: 13,
-    width: 40,
-    height: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  spark: { position: 'absolute', width: 6, height: 6 },
+  sparks: { right: 17, top: 13 },
 });
