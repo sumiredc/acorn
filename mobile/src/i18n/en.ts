@@ -68,7 +68,6 @@ export const en = {
   'progress.save': 'Record',
   'progress.complete': 'All done',
 
-  'home.totalSpoken': 'Acorns collected: {count}',
   'acorns.count': '{count} acorns',
   'home.greeting': 'Welcome back, {name}!',
   'home.missions': "This week's missions",

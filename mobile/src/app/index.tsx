@@ -2,7 +2,7 @@ import { Redirect } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { totalEarned } from '@/domain/balance';
+import { balance } from '@/domain/balance';
 import { canUndo, currentClear, nextUndoDeadline } from '@/domain/clears';
 import { appNow, remainingTime } from '@/domain/clock';
 import { currentProgress, isCheckOnly, periodEnd } from '@/domain/progress';
@@ -41,7 +41,7 @@ export default function HomeScreen() {
     key: number;
     delay: number;
   } | null>(null);
-  // Points on their way to the total. The total holds them back until they arrive, then
+  // Points on their way to the counter. The counter holds them back until they arrive, then
   // counts up; `flight` stays null when the positions can't be measured.
   const [pending, setPending] = useState<{
     missionId: string;
@@ -138,8 +138,8 @@ export default function HomeScreen() {
       right={
         <PointCounter
           ref={counterRef}
-          spokenLabel={t('home.totalSpoken', { count: totalEarned(data.clears) })}
-          value={totalEarned(data.clears) - (pending?.pt ?? 0)}
+          spokenLabel={t('shop.balanceSpoken', { count: balance(data) })}
+          value={balance(data) - (pending?.pt ?? 0)}
         />
       }
       overlay={

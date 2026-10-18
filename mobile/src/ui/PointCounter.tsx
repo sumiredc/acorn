@@ -10,14 +10,14 @@ import { colors } from './theme';
 
 const useNativeDriver = Platform.OS !== 'web';
 
-// Total points, counting up with a small pop whenever the value changes, and sparks when it grows.
+// Acorns on hand, counting with a small pop whenever the value changes, and sparks when it grows.
 export function PointCounter({
   value,
   spokenLabel,
   ref,
 }: {
   value: number;
-  // Read out for the whole counter, such as "Acorns collected: 12".
+  // Read out for the whole counter, such as "Acorns on hand: 12".
   spokenLabel: string;
   ref?: Ref<ViewHandle>;
 }) {
