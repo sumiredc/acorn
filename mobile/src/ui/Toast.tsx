@@ -50,7 +50,8 @@ export function useToast(): ShowToast {
 }
 
 const styles = StyleSheet.create({
-  layer: { position: 'absolute', left: 16, right: 16, bottom: 32, alignItems: 'center' },
+  // High enough to clear the tab bar at the bottom.
+  layer: { position: 'absolute', left: 16, right: 16, bottom: 88, alignItems: 'center' },
   toast: {
     width: '100%',
     maxWidth: layout.maxWidth,

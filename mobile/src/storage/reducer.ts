@@ -1,8 +1,16 @@
 import { canRecord, canUndo } from '@/domain/clears';
+import { canAddReward, canRedeem } from '@/domain/rewards';
 import { dateKey, DAY_MS } from '@/domain/clock';
 import { clampProgress, progressKey } from '@/domain/progress';
 import { canAddMission, canFinishMissions, ensureWeek, missionTarget } from '@/domain/week';
-import type { AcornData, Judgement, Locale, MissionKind, MissionUnit } from '@/domain/types';
+import type {
+  AcornData,
+  Judgement,
+  Locale,
+  MissionKind,
+  MissionUnit,
+  Reward,
+} from '@/domain/types';
 
 export type ScoredMission = { id: string; pt: number; judgement: Judgement };
 
@@ -23,6 +31,15 @@ export type Action =
   // Reaching the goal clears the mission, under `clearId`.
   | { type: 'recordProgress'; missionId: string; value: number; clearId: string }
   | { type: 'undoClear'; clearId: string }
+  | {
+      type: 'addReward';
+      id: string;
+      name: string;
+      pt: number;
+      mode: Reward['mode'];
+      judgement: Judgement;
+    }
+  | { type: 'redeemReward'; id: string }
   | { type: 'advanceDay' }
   | { type: 'setLocale'; locale: Locale };
 
@@ -103,6 +120,23 @@ export function reduce(data: AcornData, action: Action, now: number): AcornData 
       const key = progressKey(mission, week, clear.date);
       const progress = { ...week.progress, [key]: clear.progressBefore };
       return { ...current, clears, week: { ...week, progress } };
+    }
+
+    case 'addReward': {
+      const name = action.name.trim();
+      if (!name || !(action.pt >= 1) || !canAddReward(current.rewards)) return current;
+      const { id, pt, mode, judgement } = action;
+      const reward: Reward = { id, name, pt, mode, judgement, status: 'available', createdAt: now };
+      return { ...current, rewards: [...current.rewards, reward] };
+    }
+
+    case 'redeemReward': {
+      const reward = current.rewards.find((r) => r.id === action.id);
+      if (!reward || !canRedeem(current, reward)) return current;
+      const rewards = current.rewards.map((r) =>
+        r.id === reward.id ? { ...r, status: 'redeemed' as const, redeemedAt: now } : r,
+      );
+      return { ...current, rewards };
     }
 
     case 'advanceDay':

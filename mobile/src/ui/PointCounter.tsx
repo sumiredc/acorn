@@ -2,6 +2,7 @@ import { type Ref, useEffect, useState } from 'react';
 import { Animated, Platform, StyleSheet, View } from 'react-native';
 
 import type { ViewHandle } from './measure';
+import { formatCount } from './AcornAmount';
 import { Logo } from './Logo';
 import { PixelText } from './primitives';
 import { Sparks } from './Sparks';
@@ -50,7 +51,7 @@ export function PointCounter({
     <View ref={ref} accessible accessibilityLabel={spokenLabel} style={styles.box}>
       <Animated.View style={[styles.amount, { transform: [{ scale }] }]}>
         <Logo size={24} label={null} />
-        <PixelText style={styles.value}>{shown}</PixelText>
+        <PixelText style={styles.value}>{formatCount(shown)}</PixelText>
       </Animated.View>
       {burst > 0 && <Sparks play={burst} style={styles.sparks} />}
     </View>

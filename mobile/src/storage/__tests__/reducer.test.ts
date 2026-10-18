@@ -191,3 +191,74 @@ describe('progress and clears', () => {
     expect(reduce(cleared, { type: 'undoClear', clearId: 'c-d' }, later).clears).toHaveLength(1);
   });
 });
+
+describe('rewards', () => {
+  const add = (id: string, pt: number, name = id): Action => ({
+    type: 'addReward',
+    id,
+    name,
+    pt,
+    mode: 'price',
+    judgement: { choice: 'usd_100', probabilities: { usd_100: 1 }, confidence: 1 },
+  });
+  const earned = (pt: number): AcornData => ({
+    ...initialData,
+    clears: [
+      {
+        id: 'c',
+        missionId: 'm',
+        weekStart: '2026-10-19',
+        date: '2026-10-21',
+        pt,
+        clearedAt: NOW,
+        progressBefore: 0,
+      },
+    ],
+  });
+
+  it('adds a priced reward with a trimmed name', () => {
+    const data = run([add('a', 120, '  Headphones ')]);
+    expect(data.rewards).toEqual([
+      {
+        id: 'a',
+        name: 'Headphones',
+        pt: 120,
+        mode: 'price',
+        judgement: { choice: 'usd_100', probabilities: { usd_100: 1 }, confidence: 1 },
+        status: 'available',
+        createdAt: NOW,
+      },
+    ]);
+  });
+
+  it('ignores a blank name and stops at 5 waiting rewards', () => {
+    const data = run([
+      add('x', 10, '  '),
+      ...['a', 'b', 'c', 'd', 'e', 'f'].map((id) => add(id, 10)),
+    ]);
+    expect(data.rewards.map((r) => r.id)).toEqual(['a', 'b', 'c', 'd', 'e']);
+  });
+
+  it('redeems a reward when there are enough acorns, spending them', () => {
+    const data = run([add('a', 30), { type: 'redeemReward', id: 'a' }], earned(40));
+    expect(data.rewards[0]).toMatchObject({ status: 'redeemed', redeemedAt: NOW });
+  });
+
+  it('refuses to redeem without enough acorns', () => {
+    const data = run([add('a', 30), { type: 'redeemReward', id: 'a' }], earned(29));
+    expect(data.rewards[0].status).toBe('available');
+  });
+
+  it('does not redeem twice', () => {
+    const data = run(
+      [
+        add('a', 30),
+        { type: 'redeemReward', id: 'a' },
+        add('b', 5),
+        { type: 'redeemReward', id: 'a' },
+      ],
+      earned(40),
+    );
+    expect(data.rewards.map((r) => r.status)).toEqual(['redeemed', 'available']);
+  });
+});

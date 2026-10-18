@@ -20,9 +20,14 @@ export function AcornAmount({
   return (
     <View accessible accessibilityLabel={label} style={styles.row}>
       <Logo size={size} label={null} />
-      <PixelText style={style}>{value}</PixelText>
+      <PixelText style={style}>{typeof value === 'number' ? formatCount(value) : value}</PixelText>
     </View>
   );
+}
+
+// 30000 → "30,000", so big prices stay readable.
+export function formatCount(value: number): string {
+  return value.toLocaleString('en-US');
 }
 
 const styles = StyleSheet.create({

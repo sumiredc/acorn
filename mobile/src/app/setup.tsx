@@ -3,11 +3,14 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { apiClient } from '@/api/client';
+import { availableRewards, canAddReward } from '@/domain/rewards';
 import { nextSetupStep } from '@/domain/setup';
 import type { Locale, Mission, MissionKind } from '@/domain/types';
 import { canFinishMissions, missionSlots } from '@/domain/week';
 import { newId } from '@/storage/id';
 import { useAcorn } from '@/storage/store';
+import { AcornAmount } from '@/ui/AcornAmount';
+import { AddRewardSheet } from '@/ui/AddRewardSheet';
 import { ConfirmModal } from '@/ui/ConfirmModal';
 import { IconButton } from '@/ui/IconButton';
 import { goalLabel } from '@/ui/missionText';
@@ -27,15 +30,24 @@ const KINDS: MissionKind[] = ['daily', 'weekly'];
 export default function SetupScreen() {
   const { data, t } = useAcorn();
   const step = nextSetupStep(data);
+  // Adding the first reward moves the flow on to missions, so stay here until "Next" is pressed.
+  const [stayOnRewards, setStayOnRewards] = useState(false);
 
   if (step === null) return <Redirect href="/" />;
+  const showRewards = step === 'rewards' || (step === 'missions' && stayOnRewards);
 
   return (
     <Screen title={t('setup.title')}>
       {step === 'language' && <LanguageStep />}
       {step === 'name' && <NameStep />}
       {step === 'budget' && <BudgetStep />}
-      {step === 'missions' && <MissionsStep />}
+      {showRewards && (
+        <RewardsStep
+          onAdded={() => setStayOnRewards(true)}
+          onNext={() => setStayOnRewards(false)}
+        />
+      )}
+      {step === 'missions' && !showRewards && <MissionsStep />}
     </Screen>
   );
 }
@@ -110,6 +122,41 @@ function BudgetStep() {
         disabled={!valid}
         onPress={() => dispatch({ type: 'setBudget', budgetUsd: amount })}
       />
+    </>
+  );
+}
+
+function RewardsStep({ onAdded, onNext }: { onAdded: () => void; onNext: () => void }) {
+  const { data, t } = useAcorn();
+  const [adding, setAdding] = useState(false);
+  const waiting = availableRewards(data.rewards);
+
+  return (
+    <>
+      <Window title={t('rewards.title')}>
+        {waiting.map((reward) => (
+          <View key={reward.id} style={styles.slot}>
+            <PixelText style={styles.grow}>{reward.name}</PixelText>
+            <AcornAmount value={reward.pt} label={t('acorns.count', { count: reward.pt })} />
+          </View>
+        ))}
+        {canAddReward(data.rewards) && (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setAdding(true)}
+            style={[styles.slot, styles.empty]}
+          >
+            <PixelText style={styles.emptyLabel}>{t('rewards.empty')}</PixelText>
+          </Pressable>
+        )}
+      </Window>
+      <ActionButton
+        wide
+        label={t('common.next')}
+        disabled={waiting.length === 0}
+        onPress={onNext}
+      />
+      <AddRewardSheet visible={adding} onAdded={onAdded} onClose={() => setAdding(false)} />
     </>
   );
 }
