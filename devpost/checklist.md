@@ -69,16 +69,16 @@ Build mode: fast
 - [x] クリアしたときのトースト（「ミッションクリア！」「今日のパズル完成！」）を出さない
 - [x] 設定画面（名前と言語の変更）を作る
 - [x] ホームの右上を、累計ではなく手持ちのどんぐり（交換すると減る）にする
-- [ ] Final review complete — feedback resolved and learner confirms ready to ship
+- [x] Final review complete — feedback resolved and learner confirms ready to ship
 
 ## Code Tour and App Map
 
-- [ ] Learning activity complete — guided route, focused alternative, prior practice connected, or brief recap
+- [x] Learning activity complete — guided route, focused alternative, prior practice connected, or brief recap
 - [ ] Optional edit and transfer reflection addressed — offered/declined/already covered/not applicable as appropriate
-- [ ] `devpost/app-map.html` generated from finished code, checked, and shown, including a project-grounded practice to reuse
+- [x] `devpost/app-map.html` generated from finished code, checked, and shown, including a project-grounded practice to reuse
 
-Activity and evidence:
-Route and stops:
+Activity and evidence: 計画に慣れた学習者向けの短い振り返り（focused alternative の recap）。題材は最終確認での実際の出来事：ホーム右上の「累計」から説明の文字を外したため、交換しても減らない数が手持ちに見えた。テスト（`totalEarned`）は通っていたが、実際に操作して初めて分かり、`balance` の表示に変えた（`d4cc6b8`）。
+Route and stops: 参考ルート（一緒にはたどっていない）：`mobile/src/app/index.tsx` › `record` → `mobile/src/storage/reducer.ts` › `recordProgress` → `mobile/src/domain/balance.ts` › `balance`。app-map.html に掲載。
 Edit outcome:
 Reflection:
 Activity mode:
