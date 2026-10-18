@@ -2,12 +2,14 @@ import { StyleSheet, View } from 'react-native';
 
 import { LOGO_COLORS, LOGO_PIXELS } from './logoPixels';
 
-export function Logo({ size = 28 }: { size?: number }) {
+// `label` null hides it from screen readers, for when it sits next to text that says it all.
+export function Logo({ size = 28, label = 'Acorn' }: { size?: number; label?: string | null }) {
   const pixel = size / LOGO_PIXELS.length;
   return (
     <View
-      accessibilityRole="image"
-      accessibilityLabel="Acorn"
+      accessible={label !== null}
+      accessibilityRole={label !== null ? 'image' : undefined}
+      accessibilityLabel={label ?? undefined}
       style={{ width: size, height: size }}
     >
       {LOGO_PIXELS.map((row, y) => (

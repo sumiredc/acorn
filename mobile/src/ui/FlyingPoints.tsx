@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Animated, Easing, Platform, StyleSheet } from 'react-native';
 
+import { Logo } from './Logo';
+import { PixelText } from './primitives';
 import { SPARK_COLORS } from './Sparks';
 import { colors, fonts } from './theme';
 
@@ -14,7 +16,7 @@ const TRAIL_LAG = 0.06;
 export type Point = { x: number; y: number };
 export type Flight = { key: number; pt: number; from: Point; to: Point; delay: number };
 
-// "+Npt" flies from a cleared mission to the total, swinging out to the left and curving back
+// "+N" acorns fly from a cleared mission to the total, swinging out to the left and curving back
 // right, then calls onArrive.
 // Coordinates are relative to the overlay this is drawn in.
 export function FlyingPoints({ flight, onArrive }: { flight: Flight; onArrive: () => void }) {
@@ -75,7 +77,7 @@ export function FlyingPoints({ flight, onArrive }: { flight: Flight; onArrive: (
           />
         );
       })}
-      <Animated.Text
+      <Animated.View
         style={[
           styles.points,
           {
@@ -95,8 +97,9 @@ export function FlyingPoints({ flight, onArrive }: { flight: Flight; onArrive: (
           },
         ]}
       >
-        +{flight.pt}pt
-      </Animated.Text>
+        <Logo size={18} label={null} />
+        <PixelText style={styles.pointsText}>+{flight.pt}</PixelText>
+      </Animated.View>
     </>
   );
 }
@@ -107,8 +110,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     top: 0,
-    fontFamily: fonts.pixel,
-    fontSize: 18,
-    color: colors.leaf,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
   },
+  pointsText: { fontFamily: fonts.pixel, fontSize: 18, color: colors.leaf },
 });

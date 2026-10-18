@@ -2,9 +2,10 @@ import { type Ref, useEffect, useState } from 'react';
 import { Animated, Platform, StyleSheet, View } from 'react-native';
 
 import type { ViewHandle } from './measure';
+import { Logo } from './Logo';
 import { PixelText } from './primitives';
 import { Sparks } from './Sparks';
-import { colors, fonts } from './theme';
+import { colors } from './theme';
 
 const useNativeDriver = Platform.OS !== 'web';
 
@@ -12,10 +13,13 @@ const useNativeDriver = Platform.OS !== 'web';
 export function PointCounter({
   value,
   label,
+  spokenLabel,
   ref,
 }: {
   value: number;
   label: string;
+  // Read out for the whole counter, such as "Acorns collected: 12".
+  spokenLabel: string;
   ref?: Ref<ViewHandle>;
 }) {
   const [count] = useState(() => new Animated.Value(value));
@@ -45,17 +49,21 @@ export function PointCounter({
   }, [count, scale, value]);
 
   return (
-    <View ref={ref} accessibilityLabel={`${label} ${value}pt`} style={styles.box}>
+    <View ref={ref} accessible accessibilityLabel={spokenLabel} style={styles.box}>
       <PixelText style={styles.label}>{label}</PixelText>
-      <Animated.Text style={[styles.value, { transform: [{ scale }] }]}>{shown}pt</Animated.Text>
+      <Animated.View style={[styles.amount, { transform: [{ scale }] }]}>
+        <Logo size={24} label={null} />
+        <PixelText style={styles.value}>{shown}</PixelText>
+      </Animated.View>
       {burst > 0 && <Sparks play={burst} style={styles.sparks} />}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  box: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
+  box: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  amount: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   label: { fontSize: 12, color: colors.muted },
-  value: { fontFamily: fonts.pixel, fontSize: 22, color: colors.acorn },
+  value: { fontSize: 22, color: colors.acorn },
   sparks: { right: 6, top: 2 },
 });

@@ -11,6 +11,7 @@ import { completesToday, timelineDays } from '@/domain/timeline';
 import type { Mission } from '@/domain/types';
 import { newId } from '@/storage/id';
 import { useAcorn } from '@/storage/store';
+import { AcornAmount } from '@/ui/AcornAmount';
 import { ClearPop } from '@/ui/ClearPop';
 import { ConfirmModal } from '@/ui/ConfirmModal';
 import { DemoClock } from '@/ui/DemoClock';
@@ -135,6 +136,7 @@ export default function HomeScreen() {
         <PointCounter
           ref={counterRef}
           label={t('home.total')}
+          spokenLabel={t('home.totalSpoken', { count: totalEarned(data.clears) })}
           value={totalEarned(data.clears) - (pending?.pt ?? 0)}
         />
       }
@@ -175,7 +177,11 @@ export default function HomeScreen() {
                     ptRefs.current.set(m.id, el);
                   }}
                 >
-                  <PixelText style={styles.pt}>{m.pt}pt</PixelText>
+                  <AcornAmount
+                    value={m.pt!}
+                    style={styles.pt}
+                    label={t('acorns.count', { count: m.pt! })}
+                  />
                 </View>
               </View>
               {!isCheckOnly(m) && (
@@ -188,7 +194,7 @@ export default function HomeScreen() {
               )}
               <View style={styles.actions}>
                 <PixelText style={styles.left}>
-                  {clear ? '' : t(`remaining.${left.unit}`, { value: left.value })}
+                  {clear ? '' : t(`remaining.${left.unit}`, left)}
                 </PixelText>
                 {clear ? (
                   <>

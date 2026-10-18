@@ -38,13 +38,22 @@ describe('dateKey', () => {
 
 describe('remainingTime', () => {
   it('shows minutes under an hour, rounded up', () => {
-    expect(remainingTime(59 * MINUTE_MS + 1)).toEqual({ unit: 'minutes', value: 60 });
-    expect(remainingTime(30 * 1000)).toEqual({ unit: 'minutes', value: 1 });
-    expect(remainingTime(0)).toEqual({ unit: 'minutes', value: 0 });
+    expect(remainingTime(59 * MINUTE_MS + 1)).toEqual({ unit: 'minutes', minutes: 60 });
+    expect(remainingTime(30 * 1000)).toEqual({ unit: 'minutes', minutes: 1 });
+    expect(remainingTime(0)).toEqual({ unit: 'minutes', minutes: 0 });
   });
 
-  it('shows whole hours from an hour up', () => {
-    expect(remainingTime(HOUR_MS)).toEqual({ unit: 'hours', value: 1 });
-    expect(remainingTime(5 * HOUR_MS + 59 * MINUTE_MS)).toEqual({ unit: 'hours', value: 5 });
+  it('shows whole hours from an hour up to a day', () => {
+    expect(remainingTime(HOUR_MS)).toEqual({ unit: 'hours', hours: 1 });
+    expect(remainingTime(23 * HOUR_MS + 59 * MINUTE_MS)).toEqual({ unit: 'hours', hours: 23 });
+  });
+
+  it('shows days and hours from a day up', () => {
+    expect(remainingTime(24 * HOUR_MS)).toEqual({ unit: 'days', days: 1, hours: 0 });
+    expect(remainingTime(130 * HOUR_MS + 30 * MINUTE_MS)).toEqual({
+      unit: 'days',
+      days: 5,
+      hours: 10,
+    });
   });
 });

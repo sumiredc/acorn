@@ -35,8 +35,15 @@ export function midnightAfter(day: string, days: number): number {
   return new Date(y, m - 1, d + days).getTime();
 }
 
-// Under an hour shows minutes (rounded up), otherwise whole hours.
-export function remainingTime(ms: number): { unit: 'minutes' | 'hours'; value: number } {
-  if (ms < HOUR_MS) return { unit: 'minutes', value: Math.max(0, Math.ceil(ms / MINUTE_MS)) };
-  return { unit: 'hours', value: Math.floor(ms / HOUR_MS) };
+export type Remaining =
+  | { unit: 'minutes'; minutes: number }
+  | { unit: 'hours'; hours: number }
+  | { unit: 'days'; days: number; hours: number };
+
+// Under an hour shows minutes (rounded up), under a day whole hours, otherwise days and hours.
+export function remainingTime(ms: number): Remaining {
+  if (ms < HOUR_MS) return { unit: 'minutes', minutes: Math.max(0, Math.ceil(ms / MINUTE_MS)) };
+  const hours = Math.floor(ms / HOUR_MS);
+  if (hours < 24) return { unit: 'hours', hours };
+  return { unit: 'days', days: Math.floor(hours / 24), hours: hours % 24 };
 }
