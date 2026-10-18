@@ -60,7 +60,7 @@ PRD ref: `prd.md > The Core Journey`
 
 ## Where It Runs and How Someone Tries It
 
-- 必要なもの：Docker、Node.js（Expo SDK 57 に対応するもの）、TypeSafe の API キー（https://docs.typesafe.ai の console で発行）。
+- 必要なもの：Docker、Node.js（Expo SDK 58 に対応するもの）、TypeSafe の API キー（https://docs.typesafe.ai の console で発行）。
 - 起動：
   ```sh
   cp .env.example .env        # TYPESAFE_API_KEY を入れる（コミットしない）
@@ -69,7 +69,7 @@ PRD ref: `prd.md > The Core Journey`
   npx expo start --web        # アプリ → http://localhost:8081
   ```
 - 8081 番が別のアプリに使われている場合：`ACORN_CORS_ORIGINS=http://localhost:8082 docker compose up -d` と `npx expo start --web --port 8082` で、別のポートで動かす。
-- デモ収録：ブラウザの開発者ツールのモバイル表示（例：iPhone サイズ）で http://localhost:8081 を開いて録画する。
+- デモ動画：https://youtube.com/shorts/ydS4rhTu7JY （英語、約 55 秒）。Playwright でスマホ幅（390×844）の画面を操作して収録した。ミッションの採点とごほうびの値付けは収録中の実際の Jev の結果で、月〜土のクリアの記録は収録用に用意したデータ。ナレーションと字幕は学習者が書き、読み上げは macOS の `say`（Samantha）、BGM は自作の 8 ビット風の曲。
 - 提出に必要なのは、短いデモ動画と公開 GitHub リポジトリ。デプロイは任意。
 - 任意のデプロイ：他の人にも使ってもらう場合だけ、自宅サーバーの k8s に配置する（学習者の判断）。API キーをサーバー側に置く構成はそのまま使える。PoC では行わない。
 
